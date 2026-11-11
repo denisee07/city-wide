@@ -6,7 +6,7 @@
        first-time visitor spots the right one. Every service is still exactly
        one click from the dashboard, and none was removed. */
     $mine = request()->routeIs('resident.complaints.*', 'resident.documents.*', 'resident.appointments.*', 'resident.queue.*');
-    $community = request()->routeIs('resident.announcements.*', 'resident.freedom-wall.*', 'resident.lost-found.*', 'resident.jobs.*', 'resident.map.*');
+    $community = request()->routeIs('resident.announcements.*', 'resident.freedom-wall.*', 'resident.lost-found.*', 'resident.jobs.*');
 @endphp
 
 <nav class="nav">
@@ -33,11 +33,12 @@
             pattern="resident.lost-found.*" />
         <x-nav-item :href="route('resident.jobs.index')" label="Livelihood & Jobs" icon="briefcase"
             pattern="resident.jobs.*" />
-        {{-- The map plots community landmarks and resident reports, so it sits
-           with the rest of the community board rather than in its own group. --}}
-        <x-nav-item :href="route('resident.map.index')" label="Barangay Map" icon="map"
-            pattern="resident.map.*" />
     </x-nav-group>
+
+    {{-- Same call as the admin map: a place residents look for is not
+         something to file under a heading they must first open. --}}
+    <x-nav-item :href="route('resident.map.index')" label="Barangay Map" icon="map"
+        pattern="resident.map.*" />
 
     <x-nav-item :href="route('resident.profile.edit')" label="My Profile" icon="user"
         pattern="resident.profile.*" />

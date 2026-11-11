@@ -26,22 +26,28 @@
             <h1>Complaints</h1>
             <p class="sub">Track, assign and resolve reports filed by residents.</p>
         </div>
-        <div class="row">
-            <a href="{{ route('admin.map.index') }}" class="btn btn-ghost">
-                <x-icon name="map" size="16" /> Complaint map
-            </a>
-        </div>
+        {{-- The map is a sidebar row already; a second route to it here only
+             made the header noisy. --}}
     </div>
 
     @include('partials.status-legend', ['showPriority' => true])
 
     {{-- ============ status tabs ============ --}}
+    @php
+        /* The tabs are the status control; the filter row no longer carries a
+           second one that could disagree with what is already picked.
+           $keep carries the other choices (and the barangay drill-down) across
+           a tab change, which until now reset everything else to "All". */
+        $keep = fn (?string $status) => array_filter(
+            array_merge(request()->query(), ['status' => $status, 'page' => null])
+        );
+    @endphp
     <div class="tabs">
-        <a href="{{ route('admin.complaints.index') }}" class="tab {{ ! in_array($currentStatus, array_keys($statusLabels), true) ? 'active' : '' }}">
+        <a href="{{ route('admin.complaints.index', $keep(null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
             All <span class="count">{{ $complaints->total() }}</span>
         </a>
         @foreach ($statusLabels as $key => $label)
-            <a href="{{ route('admin.complaints.index', ['status' => $key]) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
+            <a href="{{ route('admin.complaints.index', $keep($key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
                 {{ $label }} <span class="count">{{ $counts[$key] ?? 0 }}</span>
             </a>
         @endforeach
@@ -54,21 +60,14 @@
                 <input type="search" name="q" class="input" placeholder="Search reference, title, place or resident…" value="{{ old('q', request('q')) }}">
             </div>
 
-            <select name="status" class="select" style="width:auto; min-width:150px">
-                <option value="">All statuses</option>
-                @foreach ($statusLabels as $key => $label)
-                    <option value="{{ $key }}" @selected(request('status') === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-
-            <select name="priority" class="select" style="width:auto; min-width:140px">
+            <select name="priority" class="select filter-select">
                 <option value="">All priorities</option>
                 @foreach ($priorityLabels as $key => $label)
                     <option value="{{ $key }}" @selected(request('priority') === $key)>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="category" class="select" style="width:auto; min-width:165px">
+            <select name="category" class="select filter-select">
                 <option value="">All categories</option>
                 @foreach ($categories as $key => $label)
                     <option value="{{ $key }}" @selected(request('category') === $key)>{{ $label }}</option>
@@ -79,7 +78,12 @@
                 <x-icon name="search" size="15" /> Apply
             </button>
 
-            <a href="{{ route('admin.complaints.index') }}" class="btn btn-ghost">Reset</a>
+            {{-- Only shown when there is something to undo: with every filter
+                 already on "All", a permanent Reset looked like a broken
+                 refresh button. --}}
+            @if (request()->hasAny(['q', 'priority', 'category', 'status']))
+                <a href="{{ route('admin.complaints.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
 
             <span class="small dim grow right" data-result-count>{{ $complaints->total() }} matching report(s)</span>
         </div>
@@ -91,8 +95,9 @@
             <div class="empty">
                 <div class="ico"><x-icon name="search" size="22" /></div>
                 <h3>No complaints match these filters</h3>
-                <p>Try a different status, priority or search term — or clear the filters to see everything.</p>
-                <a href="{{ route('admin.complaints.index') }}" class="btn btn-ghost btn-sm">Clear filters</a>
+                <p>Try a different status, priority or search term.</p>
+                {{-- The Reset above is the one clear-filters control; a second
+                     copy down here pointed at the same place. --}}
             </div>
         @else
             <div class="table-wrap">
@@ -106,7 +111,6 @@
                             <th>Status</th>
                             <th>Filed</th>
                             <th>Assigned</th>
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,9 +134,6 @@
                                     @else
                                         <span class="badge badge-neutral">Unassigned</span>
                                     @endif
-                                </td>
-                                <td class="right nowrap">
-                                    <a href="{{ route('admin.complaints.show', $complaint) }}" class="btn btn-sm btn-ghost">Review</a>
                                 </td>
                             </tr>
                         @endforeach

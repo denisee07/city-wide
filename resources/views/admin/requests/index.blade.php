@@ -37,12 +37,21 @@
     @include('partials.status-legend')
 
     {{-- ============ status tabs ============ --}}
+    @php
+        /* The tabs carry the counts, so they are the status control; the filter
+           row's duplicate dropdown is gone. $keep carries the search term and
+           the barangay drill-down across a tab change instead of resetting
+           everything else to "All". */
+        $keep = fn (?string $status) => array_filter(
+            array_merge(request()->query(), ['status' => $status, 'page' => null])
+        );
+    @endphp
     <div class="tabs">
-        <a href="{{ route('admin.requests.index') }}" class="tab {{ ! in_array($currentStatus, array_keys($statuses), true) ? 'active' : '' }}">
+        <a href="{{ route('admin.requests.index', $keep(null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
             All <span class="count">{{ $requests->total() }}</span>
         </a>
         @foreach ($statuses as $key => $label)
-            <a href="{{ route('admin.requests.index', ['status' => $key]) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
+            <a href="{{ route('admin.requests.index', $keep($key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
                 {{ $label }} <span class="count">{{ $counts[$key] ?? 0 }}</span>
             </a>
         @endforeach
@@ -56,15 +65,11 @@
                     value="{{ old('q', request('q')) }}">
             </div>
 
-            <select name="status" class="select" style="width:auto; min-width:175px">
-                <option value="">All statuses</option>
-                @foreach ($statuses as $key => $label)
-                    <option value="{{ $key }}" @selected($currentStatus === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-
             <button type="submit" class="btn btn-primary"><x-icon name="search" size="15" /> Apply</button>
-            <a href="{{ route('admin.requests.index') }}" class="btn btn-ghost">Reset</a>
+
+            @if (request()->hasAny(['q', 'status']))
+                <a href="{{ route('admin.requests.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
             <span class="small dim grow right" data-result-count>{{ $requests->total() }} request(s)</span>
         </div>
     </form>
@@ -76,7 +81,6 @@
                 <div class="ico"><x-icon name="file" size="22" /></div>
                 <h3>No requests found</h3>
                 <p>Nothing matches this filter. Residents&rsquo; submissions will appear here the moment they file one.</p>
-                <a href="{{ route('admin.requests.index') }}" class="btn btn-ghost btn-sm">Clear filters</a>
             </div>
         @else
             <div class="table-wrap">
@@ -89,7 +93,6 @@
                             <th>Copies / fee</th>
                             <th>Status</th>
                             <th>Filed</th>
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,9 +121,6 @@
                                     @endif
                                 </td>
                                 <td class="nowrap tiny dim">{{ $doc->created_at->format('M j, Y') }}</td>
-                                <td class="right nowrap">
-                                    <a href="{{ route('admin.requests.show', $doc) }}" class="btn btn-sm btn-ghost">Process</a>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>

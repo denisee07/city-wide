@@ -22,14 +22,15 @@
     <x-nav-group label="Cases & requests" icon="layers" id="cases" :active="$cases">
         <x-nav-item :href="$link('admin.complaints.index')" label="Complaints" icon="alert"
             pattern="admin.complaints.*" :count="$c['open_complaints'] ?? null" />
+        {{-- Directly under Complaints, and the group counts the map as one of
+             its own so it is open whenever the map is on screen. It was filed
+             at the bottom of the group first, which is how officers lost it. --}}
+        <x-nav-item :href="$link('admin.map.index')" label="Complaint Map" icon="pin"
+            pattern="admin.map.*" />
         <x-nav-item :href="$link('admin.requests.index')" label="Document Requests" icon="file"
             pattern="admin.requests.*" :count="$c['pending_docs'] ?? null" />
         <x-nav-item :href="$link('admin.appointments.index')" label="Appointments" icon="calendar"
             pattern="admin.appointments.*" :count="$c['pending_appts'] ?? null" />
-        {{-- The map plots complaints, so it lives with them rather than filed
-           under records, where a first-time officer would not look. --}}
-        <x-nav-item :href="$link('admin.map.index')" label="Complaint Map" icon="pin"
-            pattern="admin.map.*" />
     </x-nav-group>
 
     <x-nav-item :href="$link('admin.queue.index')" label="Queueing" icon="ticket"

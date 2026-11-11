@@ -627,6 +627,15 @@ p:last-child { margin-bottom: 0; }
 .check input { margin-top: .28rem; accent-color: var(--primary); width: 15px; height: 15px; flex-shrink: 0; }
 
 .search-box { position: relative; min-width: 210px; }
+
+/* A filter dropdown inside a toolbar. Nine pages carried this as an inline
+   style="width:auto; min-width:1XXpx", each with a different magic number, so
+   the toolbars wrapped inconsistently. One class, one width. */
+.filter-select {
+    width: auto;
+    min-width: 150px;
+    flex: 0 0 auto;
+}
 .search-box .input { padding-left: 2.15rem; }
 .search-box::before {
     content: "";

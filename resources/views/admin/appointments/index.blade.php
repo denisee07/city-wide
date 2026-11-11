@@ -21,12 +21,17 @@
     </div>
 
     {{-- ============ status tabs ============ --}}
+    @php
+        $keep = fn (?string $status) => array_filter(
+            array_merge(request()->query(), ['status' => $status, 'page' => null])
+        );
+    @endphp
     <div class="tabs">
-        <a href="{{ route('admin.appointments.index') }}" class="tab {{ ! in_array($currentStatus, array_keys($statuses), true) ? 'active' : '' }}">
+        <a href="{{ route('admin.appointments.index', $keep(null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
             All <span class="count">{{ $counts->sum() }}</span>
         </a>
         @foreach ($statuses as $key => $label)
-            <a href="{{ route('admin.appointments.index', ['status' => $key]) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
+            <a href="{{ route('admin.appointments.index', $keep($key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
                 {{ $label }} <span class="count">{{ $counts[$key] ?? 0 }}</span>
             </a>
         @endforeach
@@ -40,15 +45,11 @@
                     value="{{ old('q', request('q')) }}">
             </div>
 
-            <select name="status" class="select" style="width:auto; min-width:150px">
-                <option value="">All statuses</option>
-                @foreach ($statuses as $key => $label)
-                    <option value="{{ $key }}" @selected($currentStatus === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-
             <button type="submit" class="btn btn-primary"><x-icon name="search" size="15" /> Apply</button>
-            <a href="{{ route('admin.appointments.index') }}" class="btn btn-ghost">Reset</a>
+
+            @if (request()->hasAny(['q', 'status']))
+                <a href="{{ route('admin.appointments.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
         </div>
     </form>
 
@@ -59,7 +60,6 @@
                 <div class="ico"><x-icon name="calendar" size="22" /></div>
                 <h3>No appointments found</h3>
                 <p>Nothing booked for this filter. Resident bookings appear here as soon as they are made.</p>
-                <a href="{{ route('admin.appointments.index') }}" class="btn btn-ghost btn-sm">Clear filters</a>
             </div>
         </section>
     @else
