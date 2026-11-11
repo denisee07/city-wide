@@ -154,15 +154,24 @@
     }
 
     function applyGroups() {
-        var stored = [];
-        try { stored = JSON.parse(read(PREF_GROUPS, '[]')) || []; } catch (e) { stored = []; }
+        var raw = read(PREF_GROUPS, null);
+        var stored = null;
+
+        if (raw !== null) {
+            try { stored = JSON.parse(raw) || []; } catch (e) { stored = []; }
+        }
+
         var current = activeGroup();
 
-        document.querySelectorAll('.nav-group').forEach(function (g) {
+        document.querySelectorAll('.nav-group').forEach(function (g, i) {
             var id = g.getAttribute('data-nav-group');
-            /* Wherever the officer is standing, that section stays open: the
-               current page has to be findable in the panel without a click. */
-            var open = id === current || stored.indexOf(id) !== -1;
+            /* Two rules beat everything else: the section holding the page you
+               are on is always open, and on a first visit - before anyone has
+               clicked a heading - the first section opens too, so the panel
+               reads as a menu rather than a row of closed folders. That is
+               also what keeps Complaints and the map from looking removed.
+               After that, the officer's own choices win. */
+            var open = id === current || (stored === null ? i === 0 : stored.indexOf(id) !== -1);
             g.classList.toggle('open', open);
             var toggle = g.querySelector('[data-nav-toggle]');
             if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
