@@ -47,14 +47,34 @@
 /* ---------- reset ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+    /* One multiplier for the whole interface. 105 of the ~122 font sizes in
+       this stylesheet are already rem-based, so the root scales them together
+       instead of leaving headings big and buttons small. The certificate keeps
+       its own px sizes on purpose: that is a printed document with a layout
+       somebody has to sign, and it must not move when a screen reader user or
+       an older resident enlarges everything else. */
+    --text-scale: 1;
+    font-size: calc(100% * var(--text-scale));
+    -webkit-text-size-adjust: 100%;
+}
+
+html[data-text="s"]  { --text-scale: .9125; }
+html[data-text="l"]  { --text-scale: 1.15; }
+html[data-text="xl"] { --text-scale: 1.325; }
+
+/* Links: never rely on colour alone. The default keeps the app's look; the
+   "underline all links" switch in the access panel flips this one token. */
+:root { --link-deco: none; }
 
 body {
     margin: 0;
     font-family: var(--font);
     background: var(--bg);
     color: var(--text);
-    font-size: 15px;
+    /* was 15px; .9375rem is the same 15px at scale 1 and now grows with the
+       text-size control instead of staying put while everything else moves. */
+    font-size: .9375rem;
     line-height: 1.6;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
@@ -75,8 +95,8 @@ body::before {
 }
 
 img, svg, video { max-width: 100%; display: block; }
-a { color: var(--primary); text-decoration: none; }
-a:hover { text-decoration: none; }
+a { color: var(--primary); text-decoration: var(--link-deco); text-underline-offset: .18em; }
+a:hover { text-decoration: underline; }
 
 h1, h2, h3, h4, h5 { margin: 0 0 .5rem; line-height: 1.25; font-weight: 650; letter-spacing: -.02em; }
 h1 { font-size: 1.85rem; }
@@ -1716,8 +1736,319 @@ p:last-child { margin-bottom: 0; }
 /* print — certificates / printable views */
 @page { size: A4; margin: 14mm; }
 
+/* =========================================================================
+   THEMES & ACCESSIBILITY
+   Every rule here is driven by one attribute on <html>, set by
+   public/js/access.js from stored choices. Nothing is loaded lazily or
+   swapped mid-paint: the attributes are applied by a two-line script in the
+   page <head> before the stylesheet is used, so a person who saved "Terminal"
+   never sees the dark blue theme flash first.
+   ========================================================================= */
+
+/* ---- access panel ------------------------------------------------------ */
+
+.access-wrap { position: relative; }
+
+.access-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    height: 34px;
+    padding: 0 .7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-2);
+    background: var(--panel-2);
+    color: var(--muted);
+    font: inherit;
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.access-btn:hover { color: var(--text); border-color: var(--primary); }
+
+.access-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + .55rem);
+    width: min(320px, calc(100vw - 2rem));
+    padding: 1rem;
+    background: var(--panel);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 120;
+    text-align: left;
+}
+.access-panel[hidden] { display: none; }
+
+/* The auth screens have no top bar, and their brand panel is hidden below
+   1080px, so the control gets a corner of its own. That placement is the
+   whole point: a person needs larger text and usable contrast to *read the
+   login page*, not only after signing in. */
+.auth-access {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    z-index: 70;
+}
+
+@media (max-width: 560px) {
+    .access-btn-label { display: none; }
+    .access-btn { padding: 0 .55rem; }
+    .auth-access { top: .75rem; right: .75rem; }
+}
+
+.access-panel fieldset { border: 0; padding: 0; margin: 0 0 .95rem; }
+.access-panel legend {
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 0;
+    margin-bottom: .4rem;
+}
+
+/* Choices are real radio inputs and checkboxes, not click-divs, so arrow keys,
+   VoiceOver and NVDA all work here without any extra code. */
+.access-opts { display: flex; flex-wrap: wrap; gap: .35rem; }
+.access-opts label {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .34rem .6rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: .78rem;
+    cursor: pointer;
+    min-height: 34px;
+}
+.access-opts input { accent-color: var(--primary); margin: 0; }
+.access-opts input:checked + span { color: var(--text); font-weight: 650; }
+.access-opts label:has(input:checked) { border-color: var(--primary); background: var(--panel-3); }
+.access-opts label:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.access-reset {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--dim);
+    font: inherit;
+    font-size: .74rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.access-reset:hover { color: var(--danger); }
+
+/* ---- text size: layout tokens that must grow with the type ------------- */
+/* The panel and top bar are fixed in px; if the type grows and the boxes do
+   not, text clips. These two heights follow the same scale. */
+html[data-text="l"], html[data-text="xl"] { --sidebar-w: calc(258px * var(--text-scale)); }
+html[data-text="l"]  { --topbar-h: calc(66px * 1.1); }
+html[data-text="xl"] { --topbar-h: calc(66px * 1.25); }
+
+/* ---- underline every link --------------------------------------------- */
+html[data-links="on"] { --link-deco: underline; }
+
+/* ---- bigger tap targets ------------------------------------------------ */
+/* 44px is the size WCAG 2.5.5 asks for and what an arthritic or trembling
+   hand actually hits. Applied to the small controls only, never to text. */
+html[data-targets="large"] .btn,
+html[data-targets="large"] .access-btn,
+html[data-targets="large"] .access-opts label,
+html[data-targets="large"] .tab,
+html[data-targets="large"] .chip,
+html[data-targets="large"] .hamburger,
+html[data-targets="large"] .nav-item,
+html[data-targets="large"] .pagination a,
+html[data-targets="large"] .pagination span {
+    min-height: 44px;
+    padding-inline: 1rem;
+}
+
+/* ---- reduce motion ----------------------------------------------------- */
+/* Also applied automatically by the OS preference below, so someone who has
+   already told Windows to limit animations is not asked to find our switch. */
+@media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) *,
+    html:not([data-motion="full"]) *::before,
+    html:not([data-motion="full"]) *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* ---- high contrast ----------------------------------------------------- */
+/* Not merely "bigger numbers": the ambient glow, the grid texture and the
+   glass blur are all decoration that sits *behind* text, so they are removed
+   and every panel becomes a flat field with a hard edge. */
+html[data-contrast="more"] {
+    --bg: #000;
+    --bg-soft: #000;
+    --panel: #000;
+    --panel-2: #0b0b0b;
+    --panel-3: #151515;
+    --border: #d6d6d6;
+    --border-2: #ffffff;
+    --text: #ffffff;
+    --muted: #ffffff;
+    --dim: #f0f0f0;
+    --shadow: none;
+    --glow: none;
+    --link-deco: underline;
+}
+html[data-contrast="more"] body::before { display: none; }
+html[data-contrast="more"] .topbar,
+html[data-contrast="more"] .site-nav { backdrop-filter: none; background: #000; }
+html[data-contrast="more"] .nav-item.active { background: var(--panel-3); text-decoration: underline; }
+html[data-contrast="more"] .badge { border: 1px solid currentColor; }
+html[data-contrast="more"] :focus-visible { outline-width: 3px; }
+
+/* Gradient-filled ink is exactly what high contrast is meant to remove: a
+   cyan-to-violet heading sits somewhere between 4.5:1 and 8:1 depending on
+   which letter you look at, which is not a promise anyone can rely on. The
+   same argument covers the avatar and brand chips, whose gradients measure
+   4.48:1 — technically under AA — against their fills. */
+html[data-contrast="more"] .gradient-text {
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: #ffffff;
+}
+html[data-contrast="more"] .avatar,
+html[data-contrast="more"] .brand-mark {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    box-shadow: none;
+}
+html[data-contrast="more"] .btn-primary,
+html[data-contrast="more"] .btn-accent {
+    background: #fff;
+    border-color: #fff;
+    color: #000;
+}
+
+/* ---- terminal theme ---------------------------------------------------- */
+/* Monochrome, monospace, hairline rules, no radius, no gradients, no glow.
+   Everything is flat because the point is legibility and speed of scanning,
+   not atmosphere. Contrast of the shipped palette against #060606:
+   text #eaeaea 16.9:1, muted #b7b7b7 10.6:1, dim #9d9d9d 8.1:1,
+   accent #7ee787 12.4:1 — all above the AAA 7:1 floor for body text.
+   Status colours keep their hue but only as a badge's own text, never as the
+   sole signal, so the theme stays readable in black-and-white printing too. */
+html[data-theme="terminal"] {
+    --bg:            #060606;
+    --bg-soft:       #0a0a0a;
+    --panel:         #0d0d0d;
+    --panel-2:       #121212;
+    --panel-3:       #181818;
+    --border:        #2e2e2e;
+    --border-2:      #4a4a4a;
+
+    --text:          #eaeaea;
+    --muted:         #b7b7b7;
+    --dim:           #9d9d9d;
+
+    --primary:       #7ee787;
+    --primary-deep:  #56c169;
+    --accent:        #7ee787;
+    --success:       #7ee787;
+    --warning:       #e3b341;
+    --danger:        #ffa198;
+    --info:          #a5d6ff;
+
+    --radius:        0;
+    --radius-sm:     0;
+    --radius-lg:     0;
+    --shadow:        none;
+    --glow:          none;
+
+    --font:          var(--mono);
+    --link-deco:     underline;
+}
+
+/* The glow, the grid and the blur are the three things that say "app from
+   2021". Removing them is most of what makes this read as a terminal. */
+html[data-theme="terminal"] body::before { display: none; }
+html[data-theme="terminal"] body { -webkit-font-smoothing: none; }
+html[data-theme="terminal"] h1, html[data-theme="terminal"] h2,
+html[data-theme="terminal"] h3, html[data-theme="terminal"] h4,
+html[data-theme="terminal"] h5 { letter-spacing: 0; font-weight: 700; }
+
+/* Gradient-filled type: background-clip:text makes the letters themselves the
+   image, so it has to be switched off or the words turn cyan-on-cyan. */
+html[data-theme="terminal"] .gradient-text {
+    background: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: var(--primary);
+}
+
+html[data-theme="terminal"] .eyebrow::before { background: var(--primary); }
+
+/* One flat surface per layer, distinguished by border alone. */
+html[data-theme="terminal"] .sidebar { background: var(--panel); }
+html[data-theme="terminal"] .card,
+html[data-theme="terminal"] .stat,
+html[data-theme="terminal"] .alert,
+html[data-theme="terminal"] .modal-card { background: var(--panel); box-shadow: none; }
+html[data-theme="terminal"] .stat::after { display: none; }
+html[data-theme="terminal"] .topbar,
+html[data-theme="terminal"] .site-nav { backdrop-filter: none; background: var(--bg-soft); }
+
+/* Filled buttons: the accent becomes a solid block with dark ink on it, which
+   is 12:1 the other way round and still unmistakably the primary action. */
+html[data-theme="terminal"] .btn-primary,
+html[data-theme="terminal"] .btn-accent,
+html[data-theme="terminal"] .btn-primary:hover,
+html[data-theme="terminal"] .btn-accent:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #06210c;
+}
+html[data-theme="terminal"] .btn-ghost:hover { background: var(--panel-3); }
+
+html[data-theme="terminal"] .nav-item.active {
+    background: var(--panel-3);
+    color: var(--primary);
+    box-shadow: inset 3px 0 0 var(--primary);
+    text-decoration: underline;
+}
+html[data-theme="terminal"] .avatar,
+html[data-theme="terminal"] .brand-mark {
+    background: var(--panel-3);
+    color: var(--primary);
+    border: 1px solid var(--border-2);
+}
+html[data-theme="terminal"] .chip.active,
+html[data-theme="terminal"] .tab.active { color: var(--primary); }
+
+html[data-theme="terminal"] ::selection { background: var(--primary); color: #06210c; }
+html[data-theme="terminal"] ::-webkit-scrollbar-thumb { border-radius: 0; }
+
+/* Photos of people and office notice images keep their colour; everything
+   purely decorative is flattened above. */
+html[data-theme="terminal"] .feature-card,
+html[data-theme="terminal"] .hero { background: var(--panel); }
+
 @media print {
-    body::before, .sidebar, .topbar, .site-nav, .btn, #toasts, .print-hide { display: none !important; }
+    body::before, .sidebar, .topbar, .site-nav, .btn, #toasts, .print-hide,
+    .access-wrap, .access-panel { display: none !important; }
     body { background: #fff; color: #111; }
     .card, .stat { border: 1px solid #ccc; box-shadow: none; background: #fff; color: #111; }
     .shell, .main { display: block; }

@@ -33,21 +33,16 @@
     @include('partials.status-legend', ['showPriority' => true])
 
     {{-- ============ status tabs ============ --}}
-    @php
-        /* The tabs are the status control; the filter row no longer carries a
-           second one that could disagree with what is already picked.
-           $keep carries the other choices (and the barangay drill-down) across
-           a tab change, which until now reset everything else to "All". */
-        $keep = fn (?string $status) => array_filter(
-            array_merge(request()->query(), ['status' => $status, 'page' => null])
-        );
-    @endphp
+    {{-- The tabs are the status control; the filter row no longer carries a
+         second one that could disagree with what is already picked.
+         ListFilters carries the other choices (and the barangay drill-down)
+         across a tab change, which until now reset everything to "All". --}}
     <div class="tabs">
-        <a href="{{ route('admin.complaints.index', $keep(null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
+        <a href="{{ route('admin.complaints.index', \App\Support\ListFilters::with('status', null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
             All <span class="count">{{ $complaints->total() }}</span>
         </a>
         @foreach ($statusLabels as $key => $label)
-            <a href="{{ route('admin.complaints.index', $keep($key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
+            <a href="{{ route('admin.complaints.index', \App\Support\ListFilters::with('status', $key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
                 {{ $label }} <span class="count">{{ $counts[$key] ?? 0 }}</span>
             </a>
         @endforeach

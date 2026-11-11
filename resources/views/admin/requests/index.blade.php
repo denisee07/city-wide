@@ -37,21 +37,16 @@
     @include('partials.status-legend')
 
     {{-- ============ status tabs ============ --}}
-    @php
-        /* The tabs carry the counts, so they are the status control; the filter
-           row's duplicate dropdown is gone. $keep carries the search term and
-           the barangay drill-down across a tab change instead of resetting
-           everything else to "All". */
-        $keep = fn (?string $status) => array_filter(
-            array_merge(request()->query(), ['status' => $status, 'page' => null])
-        );
-    @endphp
+    {{-- The tabs carry the counts, so they are the status control; the filter
+         row's duplicate dropdown is gone. ListFilters carries the search term
+         and the barangay drill-down across a tab change instead of resetting
+         everything else to "All". --}}
     <div class="tabs">
-        <a href="{{ route('admin.requests.index', $keep(null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
+        <a href="{{ route('admin.requests.index', \App\Support\ListFilters::with('status', null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
             All <span class="count">{{ $requests->total() }}</span>
         </a>
         @foreach ($statuses as $key => $label)
-            <a href="{{ route('admin.requests.index', $keep($key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
+            <a href="{{ route('admin.requests.index', \App\Support\ListFilters::with('status', $key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
                 {{ $label }} <span class="count">{{ $counts[$key] ?? 0 }}</span>
             </a>
         @endforeach

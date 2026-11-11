@@ -11,6 +11,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ @filemtime(public_path('css/app.css')) }}">
+
+{{-- Deliberately not deferred: stored display preferences must be on <html>
+     before the first paint, or every page load flashes the wrong theme. --}}
+<script src="{{ asset('js/access.js') }}?v={{ @filemtime(public_path('js/access.js')) }}"></script>
+
 @stack('styles')
 
 <script src="{{ asset('js/app.js') }}?v={{ @filemtime(public_path('js/app.js')) }}" defer></script>

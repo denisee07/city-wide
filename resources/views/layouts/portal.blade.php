@@ -70,6 +70,11 @@
                 </span>
             @endif
 
+            {{-- Display & accessibility belongs to the person, not to the
+                 account, so it sits in the shared top bar rather than in a
+                 profile page someone may never open. --}}
+            <x-access />
+
             {{-- One identity readout, not a second way into the same screens.
                  The avatar used to be a sign-out button, then a profile link;
                  the profile is a sidebar row now, so this only says who is

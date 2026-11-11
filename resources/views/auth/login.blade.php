@@ -37,6 +37,10 @@
 
 <div class="auth-shell">
 
+    {{-- Contrast and text size are needed to read this page, not only after
+         getting past it. --}}
+    <div class="auth-access"><x-access /></div>
+
     {{-- ============ brand / perks panel ============ --}}
     <aside class="auth-aside">
         <div>

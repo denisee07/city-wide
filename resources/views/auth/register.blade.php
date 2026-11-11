@@ -31,6 +31,9 @@
 
 <div class="auth-shell">
 
+    {{-- Same reasoning as the login page. --}}
+    <div class="auth-access"><x-access /></div>
+
     {{-- ============ brand / perks panel ============ --}}
     <aside class="auth-aside">
         <div>

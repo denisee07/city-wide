@@ -15,6 +15,9 @@
     </a>
 
     <div class="links">
+        {{-- Available before sign-in: someone who needs high contrast or larger
+             type needs it to read the login screen, not only after. --}}
+        <x-access />
         {{-- In-page anchors are rooted at the home page, otherwise clicking
              them from /services just appends a fragment to /services and
              nothing moves - confusing for a first-time visitor. --}}

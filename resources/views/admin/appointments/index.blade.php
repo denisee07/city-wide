@@ -21,17 +21,14 @@
     </div>
 
     {{-- ============ status tabs ============ --}}
-    @php
-        $keep = fn (?string $status) => array_filter(
-            array_merge(request()->query(), ['status' => $status, 'page' => null])
-        );
-    @endphp
+    {{-- ListFilters keeps the search box, the barangay drill-down and any other
+         choice intact when a tab is pressed; it used to reset them to "All". --}}
     <div class="tabs">
-        <a href="{{ route('admin.appointments.index', $keep(null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
+        <a href="{{ route('admin.appointments.index', \App\Support\ListFilters::with('status', null)) }}" class="tab {{ ! $currentStatus ? 'active' : '' }}">
             All <span class="count">{{ $counts->sum() }}</span>
         </a>
         @foreach ($statuses as $key => $label)
-            <a href="{{ route('admin.appointments.index', $keep($key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
+            <a href="{{ route('admin.appointments.index', \App\Support\ListFilters::with('status', $key)) }}" class="tab {{ $currentStatus === $key ? 'active' : '' }}">
                 {{ $label }} <span class="count">{{ $counts[$key] ?? 0 }}</span>
             </a>
         @endforeach
