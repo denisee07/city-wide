@@ -121,21 +121,8 @@ class Barangay extends Model
     /* ------------------------------------------------------------------ */
 
     /**
-     * The ?barangay=<id> filter a city admin can apply to any admin page.
-     *
-     * Returns null unless the id names a real barangay, so a typo or a
-     * tampered query string can never misdirect a query. Barangay officials
-     * never reach this - ScopesAdminQueries::requestedBarangayId() checks
-     * their own scope first, so they cannot widen it.
+     * Which barangay the console is showing now lives in one place:
+     * App\Support\BarangayFilter, read by the controllers, the sidebar badges
+     * and the header pill alike.
      */
-    public static function requestedFilterId(): ?int
-    {
-        $id = (int) request()->query('barangay', 0);
-
-        if ($id <= 0) {
-            return null;
-        }
-
-        return static::query()->whereKey($id)->exists() ? $id : null;
-    }
 }

@@ -11,6 +11,7 @@ use App\Models\DocumentRequest;
 use App\Models\Job;
 use App\Models\QueueTicket;
 use App\Models\User;
+use App\Support\BarangayFilter;
 use App\Support\CityBreakdown;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -94,9 +95,9 @@ class DashboardController extends Controller
            only question a newcomer has - "where do I start?" - and every tile
            links to the list already filtered to that work.
 
-           $scope keeps a drilled-down city admin (?barangay=) on the same
-           barangay, so these links never contradict the scope pill above. */
-        $scope = ($f = $this->requestedBarangayId()) === null ? [] : ['barangay' => $f];
+           $scope carries whatever the console is already showing, so a tile never
+           contradicts the scope pill above. */
+        $scope = BarangayFilter::params();
 
         $attention = [
             [
@@ -123,14 +124,14 @@ class DashboardController extends Controller
             ],
         ];
 
-        /* A city admin's headline numbers are a flat sum across 18 barangays,
-           which hides where the work actually is. The pulse strip breaks that
-           sum back down so a heavy barangay is visible without leaving the
-           dashboard. Barangay officials already see one barangay, so for them
-           this is just their own board and is skipped. */
+        /* Headline numbers are a flat sum across the barangays on screen, which
+           hides where the work actually is. The pulse strip breaks that sum
+           back down so a heavy barangay is visible without leaving the
+           dashboard. It is pointless once the console is already narrowed to
+           one barangay, so it only shows when more than one is in view. */
         $cityPulse = null;
 
-        if ($this->seesEveryBarangay()) {
+        if ($this->effectiveBarangayId() === null) {
             $breakdown = CityBreakdown::perBarangay();
 
             $cityPulse = [

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Concerns;
 
-use App\Models\Barangay;
-use App\Models\User;
+use App\Support\BarangayFilter;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Narrows every admin query down to the signed-in official's barangay.
+ * Narrows admin listings to the barangay currently on screen.
  *
  * Three shapes of data exist in this system, and each needs a different
  * predicate:
@@ -23,78 +22,58 @@ use Illuminate\Database\Eloquent\Builder;
  *   3. The user roster itself, which is scoped by its own barangay_id.
  *      Use scoped() directly.
  *
- * A city_admin has a null barangay_id and therefore sees all 18 barangays.
- * A barangay admin or staff member sees only their own.
- *
- * scopedVisible() additionally keeps rows published city-wide (a null
- * barangay_id) visible to a barangay official, because that is precisely who
- * the city published them for.
+ * There is one administrator interface now: every officer is a City
+ * Administrator, and the barangay on screen is a *view* they choose rather
+ * than a permission they are confined to. The console opens on their home
+ * barangay and widens to all 18 with the filter. Which barangay that is gets
+ * decided in exactly one place, App\Support\BarangayFilter, so a list, its
+ * sidebar badge and the header pill can never disagree — they used to be
+ * worked out twice, in this trait and by hand in the view composer.
  */
 trait ScopesAdminQueries
 {
     /**
-     * The barangay this official is restricted to, or null when they are a
-     * city admin (or otherwise not bound to one).
-     */
-    protected function scopeBarangayId(): ?int
-    {
-        $user = auth()->user();
-
-        return $user instanceof User && $user->isBarangayScoped()
-            ? $user->barangay_id
-            : null;
-    }
-
-    protected function seesEveryBarangay(): bool
-    {
-        return $this->scopeBarangayId() === null;
-    }
-
-    /**
-     * A city admin may narrow the whole console to one barangay with
-     * ?barangay=<id> - that is how the Barangays overview drills down into a
-     * single board.
-     *
-     * This is deliberately unreachable for a barangay official: their scope is
-     * fixed by their own record, and effectiveBarangayId() returns that first,
-     * so a crafted query string can never widen what they are allowed to see.
-     */
-    protected function requestedBarangayId(): ?int
-    {
-        return $this->seesEveryBarangay()
-            ? Barangay::requestedFilterId()
-            : null;
-    }
-
-    /**
-     * The barangay actually in force on this request: an official's own scope
-     * if they have one, otherwise a city admin's ?barangay= filter.
+     * The barangay in force on this request, or null when the console is
+     * showing every barangay at once.
      */
     protected function effectiveBarangayId(): ?int
     {
-        return $this->scopeBarangayId() ?? $this->requestedBarangayId();
+        return BarangayFilter::current();
+    }
+
+    /**
+     * The barangay a new record belongs to when its form does not ask for one.
+     *
+     * A notice written by an officer based in Tagapo is a Tagapo notice, even
+     * if they were browsing the city-wide board when they wrote it, so the
+     * home barangay wins here and the on-screen filter is only the fallback.
+     */
+    protected function defaultBarangayId(): ?int
+    {
+        return BarangayFilter::home() ?? BarangayFilter::current();
+    }
+
+    /**
+     * The barangay an officer is confined to — always null.
+     *
+     * The per-record guardInScope() checks in the controllers read this, so
+     * they stay in place and simply never restrict now that nobody is
+     * confined. They are kept deliberately: if a barangay-level permission is
+     * ever reintroduced, it is restored here in one return statement instead
+     * of in nine controllers that would each have forgotten the check.
+     */
+    protected function scopeBarangayId(): ?int
+    {
+        return null;
     }
 
     /**
      * Human-readable name of the scope in force, for the admin header, so an
-     * official always knows which barangay's data is on screen.
+     * officer always knows which barangay's data is on screen.
      */
     protected function scopeLabel(): string
     {
-        $user = auth()->user();
-
-        if ($this->scopeBarangayId() !== null) {
-            return $user?->barangay?->name ?? 'Unassigned barangay';
-        }
-
-        $requested = $this->requestedBarangayId();
-
-        if ($requested !== null) {
-            return Barangay::query()->whereKey($requested)->value('name')
-                ?? 'All 18 barangays — Santa Rosa City';
-        }
-
-        return 'All 18 barangays — Santa Rosa City';
+        return BarangayFilter::label();
     }
 
     /**
@@ -108,8 +87,9 @@ trait ScopesAdminQueries
     }
 
     /**
-     * Scoping for published content: the official's own barangay plus
-     * anything carrying a null barangay_id (city-wide).
+     * Scoping for published content: the barangay on screen plus anything
+     * carrying a null barangay_id (city-wide), because that is precisely who
+     * the city published them for.
      */
     protected function scopedVisible(Builder $query, string $column = 'barangay_id'): Builder
     {

@@ -62,7 +62,7 @@ class LostFoundController extends Controller
         LostFound::create([
             ...$data,
             'reported_by' => $request->user()?->id,
-            'barangay_id' => $this->scopeBarangayId(),
+            'barangay_id' => $this->defaultBarangayId(),
         ]);
 
         return redirect()

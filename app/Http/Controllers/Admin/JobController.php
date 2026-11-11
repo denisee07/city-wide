@@ -70,7 +70,7 @@ class JobController extends Controller
             'status' => $data['status'] ?? 'open',
             'is_featured' => $request->boolean('is_featured'),
             'posted_by' => $request->user()?->id,
-            'barangay_id' => $this->scopeBarangayId(),
+            'barangay_id' => $this->defaultBarangayId(),
         ]);
 
         return redirect()

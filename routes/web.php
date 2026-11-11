@@ -32,7 +32,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 /*
 |--------------------------------------------------------------------------
-| Resident portal
+| Resident interface
 |--------------------------------------------------------------------------
 */
 
@@ -85,10 +85,22 @@ Route::prefix('resident')->name('resident.')->middleware(['auth', 'role:resident
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin,staff,city_admin'])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| City Administrator interface
+|--------------------------------------------------------------------------
+|
+| One console for every officer. 'official' covers the two retired
+| barangay-level roles still held by existing accounts, so an officer signs
+| in here no matter which value their row carries. Residents who reach any of
+| these URLs are redirected by EnsureRole, not shown a 403.
+|
+*/
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:official'])->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
-    /* City-office only: one section per barangay across all 18. */
+    /* The 18-barangay overview, open to every officer. */
     Route::get('barangays', [Admin\BarangayController::class, 'index'])->name('barangays.index');
 
     Route::get('complaints', [Admin\ComplaintController::class, 'index'])->name('complaints.index');

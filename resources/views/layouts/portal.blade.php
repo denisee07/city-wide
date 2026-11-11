@@ -49,34 +49,24 @@
                 <div class="topbar-title">@yield('topbar-title', 'Dashboard')</div>
             </div>
 
-            {{-- An official should never have to guess whose records are on
-                 screen, so the scope travels with them on every page. --}}
+            {{-- An officer should never have to guess whose records are on
+                 screen, so the scope travels with them on every page. It is a
+                 view they chose, not a permission: anyone can widen it. --}}
             @if ($portal === 'admin')
                 @php
-                    $scopeUser = auth()->user();
-                    $scopeIsCity = $scopeUser->isCityAdmin();
-
-                    /* A city admin may narrow the console with ?barangay=; the
-                       pill must say so, or it would claim "All 18" while the
-                       lists on screen hold a single barangay. */
-                    $filterId = $scopeIsCity ? \App\Models\Barangay::requestedFilterId() : null;
-                    $filterName = $filterId
-                        ? \App\Models\Barangay::query()->whereKey($filterId)->value('name')
-                        : null;
-
-                    $scopeName = $filterName
-                        ?? ($scopeIsCity
-                            ? 'All 18 barangays'
-                            : ($scopeUser->barangay?->name ?? 'Unassigned barangay'));
+                    $filterId = \App\Support\BarangayFilter::current();
+                    $scopeName = $filterId
+                        ? (\App\Models\Barangay::query()->whereKey($filterId)->value('name') ?? 'All 18 barangays')
+                        : 'All 18 barangays';
                 @endphp
-                <span class="badge {{ $scopeIsCity ? 'badge-violet' : 'badge-blue' }} shrink-0"
-                      title="Every list on this console is limited to {{ $scopeName }}">
+                <span class="badge badge-violet shrink-0"
+                      title="Every list on this console is showing {{ $scopeName }}">
                     {{ $scopeName }}
-                    @if ($filterName)
+                    @if ($filterId)
                         <a href="{{ url()->current() }}"
                            class="tiny"
                            style="margin-left:.4rem;opacity:.75"
-                           title="Clear the barangay filter">clear &times;</a>
+                           title="Show all barangays again">clear &times;</a>
                     @endif
                 </span>
             @endif

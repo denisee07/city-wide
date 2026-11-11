@@ -28,10 +28,11 @@ class MapController extends Controller
             ->whereNotNull('longitude')
             ->count();
 
-        /* A barangay board opens on that barangay; the city board on the whole city. */
-        $barangay = $this->seesEveryBarangay()
+        /* The map opens on whichever barangay the console is showing, and on
+           the whole city when it is showing all 18. */
+        $barangay = ($id = $this->effectiveBarangayId()) === null
             ? null
-            : auth()->user()?->barangay;
+            : Barangay::query()->find($id);
 
         [$latitude, $longitude] = $barangay
             ? $barangay->coordinate()

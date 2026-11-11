@@ -46,60 +46,63 @@ class User extends Authenticatable
     /* ------------------------------------------------------------------ */
 
     /**
-     * resident  — a person who files complaints, requests and bookings
-     * staff     — barangay desk staff, sees only their own barangay
-     * admin     — barangay official, sees only their own barangay
-     * city_admin— city oversight, sees every barangay
+     * The only two roles the interface offers.
+     *
+     * resident   — signs in to the Resident portal
+     * city_admin — signs in to the City Administrator console
      */
     public const ROLES = [
         'resident' => 'Resident',
-        'staff' => 'Barangay Staff',
-        'admin' => 'Barangay Admin',
-        'city_admin' => 'City Admin',
+        'city_admin' => 'City Administrator',
     ];
 
-    /** May access the /admin portal at all. */
-    public function isAdmin(): bool
+    /**
+     * Every stored value that opens the City Administrator console.
+     *
+     * 'admin' and 'staff' are the retired barangay-level roles. Rows that
+     * still carry them keep working — they simply fold into the one
+     * administrator interface — so a check asks "is this an officer" instead
+     * of comparing one string. Do not assign either to a new account; use
+     * 'city_admin'.
+     */
+    public const OFFICIAL_ROLES = ['city_admin', 'admin', 'staff'];
+
+    /** May open the /admin console. */
+    public function isOfficial(): bool
     {
-        return in_array($this->role, ['admin', 'staff', 'city_admin'], true);
+        return in_array($this->role, self::OFFICIAL_ROLES, true);
     }
 
-    /** Sees every barangay rather than just their own. */
-    public function isCityAdmin(): bool
+    /**
+     * The role as it should read anywhere on screen, so the retired "Barangay
+     * Staff" and "Barangay Admin" names never resurface in a table or badge.
+     */
+    public function getRoleLabelAttribute(): string
     {
-        return $this->role === 'city_admin';
-    }
-
-    /** Confined to a single barangay's records. */
-    public function isBarangayScoped(): bool
-    {
-        return $this->isAdmin() && ! $this->isCityAdmin();
+        return $this->isOfficial()
+            ? self::ROLES['city_admin']
+            : (self::ROLES[$this->role] ?? ucfirst($this->role));
     }
 
     /* ------------------------------------------------------------------ */
-    /* Barangay scoping                                                    */
+    /* Barangay                                                            */
     /* ------------------------------------------------------------------ */
 
+    /**
+     * For a resident this is where they live, and it decides which
+     * announcements, job posts and queue board reach them. For an officer it
+     * is their home barangay: the console opens filtered to it, but that is a
+     * default they can change, not a ceiling. See App\Support\BarangayFilter.
+     */
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class);
     }
 
-    /**
-     * Restricts a query to this user's barangay unless they are a city admin.
-     *
-     * Every admin listing funnels through this so no screen can accidentally
-     * leak another barangay's records:
-     *
-     *     $query->visibleTo($request->user());
-     */
-    public function scopeVisibleTo($query, User $actor)
+    /** The barangay an officer's console opens on, null for the whole city. */
+    public function homeBarangayId(): ?int
     {
-        if ($actor->isCityAdmin() || $actor->barangay_id === null) {
-            return $query;
-        }
-
-        return $query->where('barangay_id', $actor->barangay_id);
+        return $this->isOfficial() ? $this->barangay_id : null;
     }
 
     /* ------------------------------------------------------------------ */

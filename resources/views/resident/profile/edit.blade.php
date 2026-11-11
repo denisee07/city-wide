@@ -177,7 +177,7 @@
                     </div>
 
                     <div class="detail-list">
-                        <div class="d"><dt>Role</dt><dd><span class="badge badge-cyan">{{ $user->role }}</span></dd></div>
+                        <div class="d"><dt>Role</dt><dd><span class="badge badge-cyan">{{ $user->role_label }}</span></dd></div>
                         <div class="d"><dt>Status</dt><dd><span class="badge badge-green">{{ $user->status }}</span></dd></div>
                         <div class="d"><dt>Member since</dt><dd>{{ $user->created_at?->format('M d, Y') ?? '—' }}</dd></div>
                         <div class="d"><dt>Purok</dt><dd>{{ $user->purok ?: 'Not set' }}</dd></div>

@@ -3,8 +3,8 @@
 @endphp
 @extends('layouts.portal')
 
-@section('title', 'Residents & Staff — '.config('app.name'))
-@section('topbar-title', 'Residents & Staff')
+@section('title', 'Accounts — '.config('app.name'))
+@section('topbar-title', 'Accounts')
 
 @section('content')
     @php
@@ -40,11 +40,8 @@
         <a href="{{ route('admin.users.index', ['role' => 'resident']) }}" class="tab {{ $currentRole === 'resident' ? 'active' : '' }}">
             Residents <span class="count">{{ $counts['resident'] }}</span>
         </a>
-        <a href="{{ route('admin.users.index', ['role' => 'staff']) }}" class="tab {{ $currentRole === 'staff' ? 'active' : '' }}">
-            Staff <span class="count">{{ $counts['staff'] }}</span>
-        </a>
-        <a href="{{ route('admin.users.index', ['role' => 'admin']) }}" class="tab {{ $currentRole === 'admin' ? 'active' : '' }}">
-            Admins <span class="count">{{ $counts['admin'] }}</span>
+        <a href="{{ route('admin.users.index', ['role' => 'city_admin']) }}" class="tab {{ $currentRole === 'city_admin' ? 'active' : '' }}">
+            City administrators <span class="count">{{ $counts['city_admin'] }}</span>
         </a>
         <a href="{{ route('admin.users.index', ['status' => 'suspended']) }}" class="tab {{ $currentStatus === 'suspended' ? 'active' : '' }}">
             Suspended <span class="count">{{ $counts['suspended'] }}</span>
@@ -109,7 +106,7 @@
                                     @include('admin.users.partials.identity')
                                 </td>
                                 {{-- Both rewritten in place after an ajax save; see UserController. --}}
-                                <td data-role-cell><span class="badge {{ $roleBadge[$user->role] ?? 'badge-neutral' }}">{{ $roleLabels[$user->role] ?? ucfirst($user->role) }}</span></td>
+                                <td data-role-cell><span class="badge {{ $roleBadge[$user->role] ?? 'badge-neutral' }}">{{ $user->role_label }}</span></td>
                                 <td data-status-cell><span class="badge {{ $statusBadge[$user->status] ?? 'badge-neutral' }}">{{ $statusLabels[$user->status] ?? ucfirst($user->status) }}</span></td>
                                 <td class="tiny dim nowrap">{{ $user->created_at->format('M j, Y') }}</td>
                                 <td class="nowrap">
@@ -128,7 +125,10 @@
                                                 data-modal-open="manageUser"
                                                 data-url="{{ route('admin.users.update', $user) }}"
                                                 data-name="{{ $user->name }}"
-                                                data-role="{{ $user->role }}"
+                                                {{-- Always one of the two values the modal offers. Handing it a
+                                                     retired 'staff' or 'admin' would leave the select on its
+                                                     first option and quietly demote the account on save. --}}
+                                                data-role="{{ $user->isOfficial() ? 'city_admin' : 'resident' }}"
                                                 data-status="{{ $user->status }}">
                                                 <x-icon name="sliders" size="14" /> Manage
                                             </button>
@@ -220,7 +220,7 @@
                                 <option value="{{ $key }}" @selected(old('role') === $key)>{{ $label }}</option>
                             @endforeach
                         </select>
-                        <div class="help">Administrators manage everything; staff handle day-to-day transactions.</div>
+                        <div class="help">A resident uses the public portal. A City Administrator uses the console for the whole city.</div>
                         @error('role')<div class="error">{{ $message }}</div>@enderror
                     </div>
 

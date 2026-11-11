@@ -96,10 +96,14 @@ class AuthController extends Controller
         return redirect()->route('home')->with('success', 'You have been signed out.');
     }
 
+    /**
+     * Two interfaces, one landing page each: an officer opens the City
+     * Administrator console, everyone else opens the Resident portal.
+     */
     private function redirectTo(User $user): RedirectResponse
     {
         return redirect()->intended(
-            $user->isAdmin() ? route('admin.dashboard') : route('resident.dashboard')
+            $user->isOfficial() ? route('admin.dashboard') : route('resident.dashboard')
         );
     }
 }

@@ -109,9 +109,9 @@
                                 <label class="label" for="assigned_to">Assigned handler</label>
                                 <select id="assigned_to" name="assigned_to" class="select">
                                     <option value="">— Unassigned —</option>
-                                    @foreach ($staff as $member)
+                                    @foreach ($assignees as $member)
                                         <option value="{{ $member->id }}" @selected((string) old('assigned_to', $complaint->assigned_to) === (string) $member->id)>
-                                            {{ $member->name }} ({{ $member->role }})
+                                            {{ $member->name }}
                                         </option>
                                     @endforeach
                                 </select>

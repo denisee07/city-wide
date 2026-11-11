@@ -7,7 +7,7 @@
     Contents only - the row wraps them in a <td data-identity-cell>.
 --}}
 <span class="user-pill">
-    <span class="avatar {{ $user->role === 'admin' ? 'violet' : ($user->role === 'staff' ? 'green' : 'neutral') }}">
+    <span class="avatar {{ $user->isOfficial() ? 'violet' : 'neutral' }}">
         {{ $user->initials }}
     </span>
     <span>

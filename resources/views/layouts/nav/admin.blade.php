@@ -2,11 +2,10 @@
     $active = fn (string $pattern) => request()->routeIs($pattern) ? 'active' : '';
     $c = $navCounts ?? [];
 
-    /* A city admin may narrow the console with ?barangay=<id>; carry that
-       filter through the sidebar so drilling down doesn't silently reset. */
-    $filterId = auth()->user()?->isCityAdmin() ? \App\Models\Barangay::requestedFilterId() : null;
-    $link = fn (string $route) => route($route, $filterId ? ['barangay' => $filterId] : []);
-    $isCityAdmin = auth()->user()?->isCityAdmin() ?? false;
+    /* The console can be narrowed to one barangay with ?barangay=<id>; carry
+       that filter through the sidebar so drilling down doesn't reset it. */
+    $scope = \App\Support\BarangayFilter::params();
+    $link = fn (string $route) => route($route, $scope);
 @endphp
 
 <nav class="nav">
@@ -16,12 +15,10 @@
         <x-icon name="grid" /> <span>Dashboard</span>
     </a>
 
-    @if ($isCityAdmin)
-        <a href="{{ route('admin.barangays.index') }}" class="nav-item {{ $active('admin.barangays.*') }}">
-            <x-icon name="map" /> <span>Barangays</span>
-            <span class="count">18</span>
-        </a>
-    @endif
+    <a href="{{ $link('admin.barangays.index') }}" class="nav-item {{ $active('admin.barangays.*') }}">
+        <x-icon name="map" /> <span>Barangays</span>
+        <span class="count">18</span>
+    </a>
 
     <div class="nav-label">Cases &amp; requests</div>
 
@@ -68,10 +65,10 @@
     <div class="nav-label">Administration</div>
 
     <a href="{{ $link('admin.users.index') }}" class="nav-item {{ $active('admin.users.*') }}">
-        <x-icon name="users" /> <span>Residents &amp; Staff</span>
+        <x-icon name="users" /> <span>Accounts</span>
     </a>
 
     <a href="{{ route('admin.settings.edit') }}" class="nav-item {{ $active('admin.settings.*') }}">
-        <x-icon name="sliders" /> <span>{{ $isCityAdmin ? 'City Settings' : 'Barangay Settings' }}</span>
+        <x-icon name="sliders" /> <span>Settings</span>
     </a>
 </nav>

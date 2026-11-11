@@ -3,10 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Appointment;
-use App\Models\Barangay;
 use App\Models\Complaint;
 use App\Models\DocumentRequest;
 use App\Models\QueueTicket;
+use App\Support\BarangayFilter;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -32,19 +32,17 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            if ($user->isAdmin()) {
-                /* Mirror ScopesAdminQueries::effectiveBarangayId(): an official's
-                   own barangay wins, otherwise a city admin's ?barangay= filter.
-
-                   Without this the sidebar counted records across all 18
-                   barangays while every list underneath it showed one - so the
-                   same number appeared twice with two different answers.
+            if ($user->isOfficial()) {
+                /* BarangayFilter is what the controllers themselves use, so the
+                   sidebar now counts exactly the rows the lists underneath it
+                   show. This used to be re-derived by hand here, which is how
+                   the same number came to appear twice with two different
+                   answers.
 
                    The four totals also match DashboardController exactly, and
                    "waiting" now means only tickets actually in line, rather
                    than silently folding in the ones already at a window. */
-                $scopeId = ($user->isBarangayScoped() ? $user->barangay_id : null)
-                    ?? Barangay::requestedFilterId();
+                $scopeId = BarangayFilter::current();
 
                 $byResident = fn ($query) => $scopeId === null
                     ? $query

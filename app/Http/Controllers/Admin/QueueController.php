@@ -114,7 +114,7 @@ class QueueController extends Controller
             'queue_date' => today()->toDateString(),
             // A walk-in has no owning resident, so the issuing official's own
             // barangay is what puts the slip on the right board.
-            'barangay_id' => $this->scopeBarangayId(),
+            'barangay_id' => $this->defaultBarangayId(),
         ]);
 
         return redirect()

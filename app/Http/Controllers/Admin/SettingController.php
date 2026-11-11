@@ -10,26 +10,6 @@ use Illuminate\View\View;
 
 class SettingController extends Controller
 {
-    /**
-     * These keys drive the site-wide brand mark, page titles and the wording
-     * printed on certificates. With 18 barangays sharing one portal there is no
-     * single "barangay name" to edit, so the screen belongs to the city office
-     * and a barangay admin is sent back to their dashboard rather than shown a
-     * form they cannot meaningfully fill in.
-     *
-     * Returns null when the caller is allowed through.
-     */
-    private function guardCityAdmin(): ?RedirectResponse
-    {
-        if (auth()->user()?->isCityAdmin()) {
-            return null;
-        }
-
-        return redirect()
-            ->route('admin.dashboard')
-            ->with('error', 'City branding is managed by the city administrator. Your barangay details are set when your account is created.');
-    }
-
     /** Human-friendly label + hint for every key stored in the settings table. */
     public const FIELDS = [
         'barangay_name' => [
@@ -59,14 +39,14 @@ class SettingController extends Controller
         ],
     ];
 
-    public function edit(): View|RedirectResponse
+    /**
+     * These keys drive the brand mark, page titles and the wording printed on
+     * certificates. With 18 barangays sharing one portal there is no single
+     * "barangay name" to edit, so they describe the city office and every
+     * officer maintains them from the same screen.
+     */
+    public function edit(): View
     {
-        $blocked = $this->guardCityAdmin();
-
-        if ($blocked !== null) {
-            return $blocked;
-        }
-
         return view('admin.settings.edit', [
             'settings' => Setting::kv(),
             'fields' => self::FIELDS,
@@ -75,12 +55,6 @@ class SettingController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $blocked = $this->guardCityAdmin();
-
-        if ($blocked !== null) {
-            return $blocked;
-        }
-
         $data = $request->validate([
             'barangay_name' => ['required', 'string', 'max:120'],
             'barangay_address' => ['nullable', 'string', 'max:220'],

@@ -121,8 +121,11 @@ class ComplaintController extends Controller
             'appointments' => $resident ? $resident->appointments()->count() : 0,
         ];
 
-        $staff = User::query()
-            ->whereIn('role', ['admin', 'staff'])
+        /* Every officer who can sign in to the console is a candidate. Naming
+           two of the three officer roles by hand is how the city
+           administrator went missing from this list entirely. */
+        $assignees = User::query()
+            ->whereIn('role', User::OFFICIAL_ROLES)
             ->where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'name', 'role']);
@@ -130,7 +133,7 @@ class ComplaintController extends Controller
         return view('admin.complaints.show', [
             'complaint' => $complaint,
             'residentStats' => $residentStats,
-            'staff' => $staff,
+            'assignees' => $assignees,
         ]);
     }
 

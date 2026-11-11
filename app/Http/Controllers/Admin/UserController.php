@@ -12,22 +12,32 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
+/**
+ * The account roster, and the only place a role is handed out.
+ *
+ * Two interfaces mean two roles: Resident and City Administrator. The older
+ * barangay-level values ('admin', 'staff') still exist in rows written before
+ * the fold, so they are read everywhere and offered nowhere - picking
+ * "City Administrator" writes 'city_admin' and a legacy account normalises the
+ * moment anyone edits it.
+ */
 class UserController extends Controller
 {
     use RendersStatusPatches, ScopesAdminQueries;
 
-    public const ROLES = [
-        'admin' => 'Administrator',
-        'staff' => 'Barangay Staff',
-        'resident' => 'Resident',
-    ];
+    /** The two roles an officer can assign. */
+    public const ROLES = User::ROLES;
 
-    /** Role -> badge class. Shared by the board and the in-place patch. */
+    /**
+     * Role -> badge class. Shared by the board and the in-place patch. The
+     * retired values are listed so an old row is still coloured as the officer
+     * it already is, rather than falling through to neutral.
+     */
     public const ROLE_BADGES = [
+        'city_admin' => 'badge-violet',
         'admin' => 'badge-violet',
-        'staff' => 'badge-blue',
+        'staff' => 'badge-violet',
         'resident' => 'badge-neutral',
-        'city_admin' => 'badge-neutral',   /* the board previously fell through to neutral */
     ];
 
     /** Status -> badge class. Shared by the board and the in-place patch. */
@@ -35,9 +45,6 @@ class UserController extends Controller
         'active' => 'badge-green',
         'suspended' => 'badge-rose',
     ];
-
-    /** Reserved for the city account — only a city admin may assign it. */
-    public const CITY_ROLE = 'city_admin';
 
     public const STATUSES = [
         'active' => 'Active',
@@ -59,8 +66,12 @@ class UserController extends Controller
                 ->orWhere('purok', 'like', '%'.$term.'%'));
         }
 
-        if (in_array($request->input('role'), array_keys(self::ROLES), true)) {
-            $query->where('role', $request->input('role'));
+        if ($request->input('role') === 'resident') {
+            $query->where('role', 'resident');
+        } elseif ($request->input('role') === 'city_admin') {
+            /* One tile for both interfaces, so asking for administrators has to
+               match the retired officer values too. */
+            $query->whereIn('role', User::OFFICIAL_ROLES);
         }
 
         if (in_array($request->input('status'), array_keys(self::STATUSES), true)) {
@@ -71,11 +82,12 @@ class UserController extends Controller
 
         return view('admin.users.index', [
             'users' => $users,
+            /* One tile per interface, not per stored value: an officer with a
+               legacy 'staff' row belongs in the City Administrators count. */
             'counts' => [
                 'all' => $this->scopedUsers(User::query())->count(),
-                'resident' => $this->scopedUsers(User::query())->where('role', 'resident')->count(),
-                'staff' => $this->scopedUsers(User::query())->where('role', 'staff')->count(),
-                'admin' => $this->scopedUsers(User::query())->where('role', 'admin')->count(),
+                'resident' => $this->countRole('resident'),
+                'city_admin' => $this->countRole('city_admin'),
                 'suspended' => $this->scopedUsers(User::query())->where('status', 'suspended')->count(),
             ],
             'scopeLabel' => $this->scopeLabel(),
@@ -86,14 +98,10 @@ class UserController extends Controller
     {
         $me = $request->user();
 
-        $this->guardTarget($user, $me);
-
-        $roles = $me->isCityAdmin()
-            ? array_merge(self::ROLES, [self::CITY_ROLE => 'City Administrator'])
-            : self::ROLES;
+        $this->guardTarget($user);
 
         $data = $request->validate([
-            'role' => ['required', Rule::in(array_keys($roles))],
+            'role' => ['required', Rule::in(array_keys(self::ROLES))],
             'status' => ['required', Rule::in(array_keys(self::STATUSES))],
         ]);
 
@@ -102,19 +110,18 @@ class UserController extends Controller
                 return $this->deny('You cannot suspend your own account.');
             }
 
-            if ($data['role'] !== $user->role) {
-                return $this->deny('You cannot change your own role. Ask another administrator to do it.');
+            if ($this->portalFor($data['role']) !== $this->portalFor($user->role)) {
+                return $this->deny('You cannot move your own account to the other interface. Ask another administrator to do it.');
             }
         }
 
         if ($this->isLastOfficial($user, $data['role'])) {
-            return $this->deny('This is the last administrator account in the barangay — promote another admin first.');
+            return $this->deny('This is the last City Administrator account — promote another officer first.');
         }
 
         $user->update($data);
 
-        $label = ($roles[$data['role']] ?? self::ROLES[$data['role']] ?? $data['role'])
-            .' — '.self::STATUSES[$data['status']];
+        $label = self::ROLES[$data['role']].' — '.self::STATUSES[$data['status']];
         $message = $user->name.' is now '.$label.'.';
 
         return $this->savedResponse(
@@ -131,7 +138,7 @@ class UserController extends Controller
                 [
                     'selector' => sprintf('[data-record-id="%d"] [data-role-cell]', $user->id),
                     'badge' => self::ROLE_BADGES[$user->role] ?? 'badge-neutral',
-                    'label' => $roles[$user->role] ?? self::ROLES[$user->role] ?? ucfirst($user->role),
+                    'label' => $user->role_label,
                 ],
                 [
                     'selector' => $this->statusCellSelector($user->id),
@@ -143,7 +150,9 @@ class UserController extends Controller
                 [
                     'selector' => sprintf('[data-record-id="%d"] [data-modal-open="manageUser"]', $user->id),
                     'attrs' => [
-                        'data-role' => $user->role,
+                        /* Always one of the two values the select offers, even
+                           when the row itself still carries a retired role. */
+                        'data-role' => $data['role'],
                         'data-status' => $user->status,
                         'data-name' => $user->name,
                     ],
@@ -156,14 +165,14 @@ class UserController extends Controller
     {
         $me = $request->user();
 
-        $this->guardTarget($user, $me);
+        $this->guardTarget($user);
 
         if ($user->is($me)) {
             return $this->deny('You cannot delete your own account.');
         }
 
-        if ($this->isLastOfficial($user, self::ROLES['resident'])) {
-            return $this->deny('This is the last administrator account in the barangay — promote another admin first.');
+        if ($this->isLastOfficial($user, 'resident')) {
+            return $this->deny('This is the last City Administrator account — promote another officer first.');
         }
 
         $name = $user->name;
@@ -175,16 +184,31 @@ class UserController extends Controller
     }
 
     /**
-     * A barangay admin may only act on accounts inside their own barangay; the
-     * city admin sits above all 18. A 404 rather than a 403, so an official
-     * cannot use the response to confirm that an account exists elsewhere.
+     * Which interface a role opens. 'official' is accepted as well, so the
+     * roster can be filtered by interface rather than by stored string.
      */
-    private function guardTarget(User $target, User $me): void
+    private function portalFor(string $role): string
     {
-        if ($me->isCityAdmin()) {
-            return;
-        }
+        return in_array($role, User::OFFICIAL_ROLES, true) ? 'city_admin' : 'resident';
+    }
 
+    /** Accounts that open one interface, inside the barangay on screen. */
+    private function countRole(string $role): int
+    {
+        $query = $this->scopedUsers(User::query());
+
+        return $role === 'resident'
+            ? $query->where('role', 'resident')->count()
+            : $query->whereIn('role', User::OFFICIAL_ROLES)->count();
+    }
+
+    /**
+     * Every officer is a City Administrator, so any of them may act on any
+     * account. The check is left in place as the seam for a future
+     * barangay-level permission; see ScopesAdminQueries::scopeBarangayId().
+     */
+    private function guardTarget(User $target): void
+    {
         $id = $this->scopeBarangayId();
 
         if ($id !== null && $target->barangay_id !== $id) {
@@ -193,25 +217,25 @@ class UserController extends Controller
     }
 
     /**
-     * True when the change would leave the barangay with no administrator.
+     * True when the change would leave the city with no administrator at all.
      *
-     * Counted inside the official's own scope, so the Tagapo admin cannot
-     * demote the Labas admin into leaving Labas unmanaged.
+     * Counted across every barangay rather than one, because losing the last
+     * officer anywhere would lock the console for the whole city.
      */
     private function isLastOfficial(User $user, string $newRole): bool
     {
-        if ($user->role !== 'admin' || $newRole === 'admin') {
-            return false; // never an admin, or staying one.
+        if (! $user->isOfficial() || $this->portalFor($newRole) === 'city_admin') {
+            return false; // never an officer, or staying one.
         }
 
-        return $this->scopedUsers(User::query())
-            ->where('role', 'admin')
+        return User::query()
+            ->whereIn('role', User::OFFICIAL_ROLES)
             ->whereKeyNot($user->id)
             ->count() === 0;
     }
 
     /**
-     * A refusal the official can read. Ajax gets it as JSON so the toast can
+     * A refusal the officer can read. Ajax gets it as JSON so the toast can
      * say why nothing changed; a plain post gets the usual redirect + flash.
      */
     private function deny(string $message): RedirectResponse|JsonResponse

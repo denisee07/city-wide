@@ -73,7 +73,7 @@ class AnnouncementController extends Controller
             'created_by' => $request->user()?->id,
             // A notice composed by a barangay official belongs to that
             // barangay; one composed by the city admin is published city-wide.
-            'barangay_id' => $this->scopeBarangayId(),
+            'barangay_id' => $this->defaultBarangayId(),
         ]);
 
         return redirect()
