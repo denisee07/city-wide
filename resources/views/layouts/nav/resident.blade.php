@@ -1,56 +1,44 @@
 @php
-    $active = fn (string $pattern) => request()->routeIs($pattern) ? 'active' : '';
+    $c = $navCounts ?? [];
+
+    /* Residents came here to do four things. The panel now says so, instead
+       of showing ten destinations and three headings at once and hoping the
+       first-time visitor spots the right one. Every service is still exactly
+       one click from the dashboard, and none was removed. */
+    $mine = request()->routeIs('resident.complaints.*', 'resident.documents.*', 'resident.appointments.*', 'resident.queue.*');
+    $community = request()->routeIs('resident.announcements.*', 'resident.freedom-wall.*', 'resident.lost-found.*', 'resident.jobs.*', 'resident.map.*');
 @endphp
 
 <nav class="nav">
-    <div class="nav-label">Overview</div>
+    <x-nav-item :href="route('resident.dashboard')" label="Dashboard" icon="grid"
+        pattern="resident.dashboard" />
 
-    <a href="{{ route('resident.dashboard') }}" class="nav-item {{ $active('resident.dashboard') }}">
-        <x-icon name="grid" /> <span>Dashboard</span>
-    </a>
+    <x-nav-group label="My requests" icon="clipboard" id="mine" :active="$mine">
+        <x-nav-item :href="route('resident.complaints.index')" label="Complaints" icon="alert"
+            pattern="resident.complaints.*" :count="$c['complaints'] ?? null" />
+        <x-nav-item :href="route('resident.documents.index')" label="Documents & Certificates" icon="file"
+            pattern="resident.documents.*" :count="$c['documents'] ?? null" />
+        <x-nav-item :href="route('resident.appointments.index')" label="Appointments" icon="calendar"
+            pattern="resident.appointments.*" :count="$c['appointments'] ?? null" />
+        <x-nav-item :href="route('resident.queue.index')" label="Queueing" icon="ticket"
+            pattern="resident.queue.*" />
+    </x-nav-group>
 
-    <div class="nav-label">My transactions</div>
+    <x-nav-group label="Community" icon="compass" id="community" :active="$community">
+        <x-nav-item :href="route('resident.announcements.index')" label="Announcements" icon="bell"
+            pattern="resident.announcements.*" />
+        <x-nav-item :href="route('resident.freedom-wall.index')" label="Freedom Wall" icon="chat"
+            pattern="resident.freedom-wall.*" />
+        <x-nav-item :href="route('resident.lost-found.index')" label="Lost & Found" icon="box"
+            pattern="resident.lost-found.*" />
+        <x-nav-item :href="route('resident.jobs.index')" label="Livelihood & Jobs" icon="briefcase"
+            pattern="resident.jobs.*" />
+        {{-- The map plots community landmarks and resident reports, so it sits
+           with the rest of the community board rather than in its own group. --}}
+        <x-nav-item :href="route('resident.map.index')" label="Barangay Map" icon="map"
+            pattern="resident.map.*" />
+    </x-nav-group>
 
-    <a href="{{ route('resident.complaints.index') }}" class="nav-item {{ $active('resident.complaints.*') }}">
-        <x-icon name="alert" /> <span>Complaints</span>
-        <span class="count">{{ $navCounts['complaints'] ?? 0 }}</span>
-    </a>
-
-    <a href="{{ route('resident.documents.index') }}" class="nav-item {{ $active('resident.documents.*') }}">
-        <x-icon name="file" /> <span>Documents &amp; Certificates</span>
-        <span class="count">{{ $navCounts['documents'] ?? 0 }}</span>
-    </a>
-
-    <a href="{{ route('resident.appointments.index') }}" class="nav-item {{ $active('resident.appointments.*') }}">
-        <x-icon name="calendar" /> <span>Appointments</span>
-        <span class="count">{{ $navCounts['appointments'] ?? 0 }}</span>
-    </a>
-
-    <a href="{{ route('resident.queue.index') }}" class="nav-item {{ $active('resident.queue.*') }}">
-        <x-icon name="ticket" /> <span>Queueing System</span>
-    </a>
-
-    <div class="nav-label">Community</div>
-
-    <a href="{{ route('resident.announcements.index') }}" class="nav-item {{ $active('resident.announcements.*') }}">
-        <x-icon name="megaphone" /> <span>Announcements</span>
-    </a>
-
-    <a href="{{ route('resident.freedom-wall.index') }}" class="nav-item {{ $active('resident.freedom-wall.*') }}">
-        <x-icon name="chat" /> <span>Freedom Wall</span>
-    </a>
-
-    <a href="{{ route('resident.lost-found.index') }}" class="nav-item {{ $active('resident.lost-found.*') }}">
-        <x-icon name="box" /> <span>Lost &amp; Found</span>
-    </a>
-
-    <a href="{{ route('resident.jobs.index') }}" class="nav-item {{ $active('resident.jobs.*') }}">
-        <x-icon name="briefcase" /> <span>Livelihood &amp; Jobs</span>
-    </a>
-
-    {{-- The map plots community landmarks and resident reports, so it sits
-         with the rest of the community board rather than in its own group. --}}
-    <a href="{{ route('resident.map.index') }}" class="nav-item {{ $active('resident.map.*') }}">
-        <x-icon name="map" /> <span>Barangay Map</span>
-    </a>
+    <x-nav-item :href="route('resident.profile.edit')" label="My Profile" icon="user"
+        pattern="resident.profile.*" />
 </nav>

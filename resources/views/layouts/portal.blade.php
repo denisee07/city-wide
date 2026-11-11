@@ -11,25 +11,21 @@
 <div class="shell">
 
     {{-- ============ sidebar ============ --}}
-    <aside class="sidebar">
+    <aside class="sidebar" id="primaryNav" aria-label="Primary navigation">
         <div class="brand">
             <div class="brand-mark">BS</div>
             <div>
                 <div class="brand-name">{{ config('app.name') }}</div>
-                <div class="brand-sub">{{ $portal === 'admin' ? 'Officials Console' : 'Resident Portal' }}</div>
+                <div class="brand-sub">{{ $portal === 'admin' ? 'City Administrator' : 'Resident Portal' }}</div>
             </div>
         </div>
 
         @include('layouts.nav.'.$portal)
 
         <div class="sidebar-foot">
-            {{-- Account and exit controls live together at the bottom, the
-                 place people already look for them. --}}
-            @if ($portal === 'resident')
-                <a href="{{ route('resident.profile.edit') }}" class="nav-item {{ request()->routeIs('resident.profile.*') ? 'active' : '' }}">
-                    <x-icon name="user" /> <span>My profile</span>
-                </a>
-            @endif
+            {{-- The account links live in the navigation proper now, so this
+                 strip carries only the one thing that is not part of the
+                 portal at all: leaving it. --}}
             <a href="{{ route('home') }}" class="nav-item">
                 <x-icon name="compass" /> <span>Public website</span>
             </a>
@@ -40,7 +36,10 @@
     {{-- ============ main ============ --}}
     <div class="main">
         <header class="topbar">
-            <button class="hamburger" data-sidebar-toggle aria-label="Toggle navigation">
+            {{-- Present at every width now: on a phone it opens the drawer, on
+                 a desktop it gets the panel out of the way while working. --}}
+            <button class="hamburger" data-sidebar-toggle aria-controls="primaryNav"
+                    aria-expanded="false" aria-label="Show or hide the navigation">
                 <x-icon name="menu" size="20" />
             </button>
 
@@ -71,24 +70,14 @@
                 </span>
             @endif
 
-            @hasSection('topbar-actions')
-                <div class="row shrink-0">@yield('topbar-actions')</div>
-            @endif
-
-            {{-- The avatar reads as "my account", so it must never sign someone
-                 out behind their back. It now only shows who is signed in -
-                 and opens the profile in the resident portal - while signing
-                 out is its own, unmistakably labelled control. --}}
-            @if ($portal === 'resident')
-                <a href="{{ route('resident.profile.edit') }}" class="user-pill shrink-0" title="Open my profile">
-                    <span class="avatar sm">{{ auth()->user()->initials }}</span>
-                    <x-icon name="user" size="16" />
-                </a>
-            @else
-                <span class="user-pill shrink-0" title="Signed in as {{ auth()->user()->name }}">
-                    <span class="avatar sm">{{ auth()->user()->initials }}</span>
-                </span>
-            @endif
+            {{-- One identity readout, not a second way into the same screens.
+                 The avatar used to be a sign-out button, then a profile link;
+                 the profile is a sidebar row now, so this only says who is
+                 signed in, and signing out stays its own labelled control. --}}
+            <span class="user-pill shrink-0" title="{{ auth()->user()->name }} — {{ auth()->user()->role_label }}">
+                <span class="avatar sm">{{ auth()->user()->initials }}</span>
+                <span class="user-pill-name">{{ auth()->user()->name }}</span>
+            </span>
 
             <form method="POST" action="{{ route('logout') }}" class="shrink-0">
                 @csrf

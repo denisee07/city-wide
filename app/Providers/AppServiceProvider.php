@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Appointment;
+use App\Models\Barangay;
 use App\Models\Complaint;
 use App\Models\DocumentRequest;
 use App\Models\QueueTicket;
@@ -42,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
                    The four totals also match DashboardController exactly, and
                    "waiting" now means only tickets actually in line, rather
                    than silently folding in the ones already at a window. */
+                /* Counted from the same filter the lists use, so a badge can
+                   never claim a number the page underneath disagrees with. */
                 $scopeId = BarangayFilter::current();
 
                 $byResident = fn ($query) => $scopeId === null
@@ -56,6 +59,10 @@ class AppServiceProvider extends ServiceProvider
                     : $query->where('barangay_id', $scopeId);
 
                 $counts = [
+                    /* Was a hard-coded 18 in the sidebar. There are 18 rows in
+                       the barangays table today, but a number that is typed
+                       rather than asked goes stale the day one is retired. */
+                    'barangays' => Barangay::query()->count(),
                     'open_complaints' => $byBarangay(Complaint::query())
                         ->whereIn('status', ['received', 'in_progress', 'on_hold'])
                         ->count(),

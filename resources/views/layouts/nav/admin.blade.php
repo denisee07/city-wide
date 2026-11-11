@@ -1,74 +1,56 @@
 @php
-    $active = fn (string $pattern) => request()->routeIs($pattern) ? 'active' : '';
     $c = $navCounts ?? [];
 
     /* The console can be narrowed to one barangay with ?barangay=<id>; carry
-       that filter through the sidebar so drilling down doesn't reset it. */
+       that choice through the sidebar so drilling down doesn't reset it. */
     $scope = \App\Support\BarangayFilter::params();
     $link = fn (string $route) => route($route, $scope);
+
+    /* Twelve destinations on screen at once read as a wall. They are grouped
+       into what an officer actually comes here to do, so the panel starts as
+       six rows and the rest opens on demand. Nothing was dropped: every
+       section that was reachable before is still one click away. */
+    $cases = request()->routeIs('admin.complaints.*', 'admin.map.*', 'admin.requests.*', 'admin.appointments.*');
+    $publishing = request()->routeIs('admin.announcements.*', 'admin.lost-found.*', 'admin.jobs.*');
+    $managing = request()->routeIs('admin.barangays.*', 'admin.users.*');
 @endphp
 
 <nav class="nav">
-    <div class="nav-label">Overview</div>
+    <x-nav-item :href="route('admin.dashboard')" label="Dashboard" icon="grid"
+        pattern="admin.dashboard" />
 
-    <a href="{{ route('admin.dashboard') }}" class="nav-item {{ $active('admin.dashboard') }}">
-        <x-icon name="grid" /> <span>Dashboard</span>
-    </a>
+    <x-nav-group label="Cases & requests" icon="layers" id="cases" :active="$cases">
+        <x-nav-item :href="$link('admin.complaints.index')" label="Complaints" icon="alert"
+            pattern="admin.complaints.*" :count="$c['open_complaints'] ?? null" />
+        <x-nav-item :href="$link('admin.requests.index')" label="Document Requests" icon="file"
+            pattern="admin.requests.*" :count="$c['pending_docs'] ?? null" />
+        <x-nav-item :href="$link('admin.appointments.index')" label="Appointments" icon="calendar"
+            pattern="admin.appointments.*" :count="$c['pending_appts'] ?? null" />
+        {{-- The map plots complaints, so it lives with them rather than filed
+           under records, where a first-time officer would not look. --}}
+        <x-nav-item :href="$link('admin.map.index')" label="Complaint Map" icon="pin"
+            pattern="admin.map.*" />
+    </x-nav-group>
 
-    <a href="{{ $link('admin.barangays.index') }}" class="nav-item {{ $active('admin.barangays.*') }}">
-        <x-icon name="map" /> <span>Barangays</span>
-        <span class="count">18</span>
-    </a>
+    <x-nav-item :href="$link('admin.queue.index')" label="Queueing" icon="ticket"
+        pattern="admin.queue.*" :count="$c['waiting'] ?? null" />
 
-    <div class="nav-label">Cases &amp; requests</div>
+    <x-nav-group label="Publishing" icon="megaphone" id="publishing" :active="$publishing">
+        <x-nav-item :href="$link('admin.announcements.index')" label="Announcements" icon="bell"
+            pattern="admin.announcements.*" />
+        <x-nav-item :href="$link('admin.lost-found.index')" label="Lost & Found" icon="box"
+            pattern="admin.lost-found.*" />
+        <x-nav-item :href="$link('admin.jobs.index')" label="Livelihood & Jobs" icon="briefcase"
+            pattern="admin.jobs.*" />
+    </x-nav-group>
 
-    <a href="{{ $link('admin.complaints.index') }}" class="nav-item {{ $active('admin.complaints.*') }}">
-        <x-icon name="alert" /> <span>Complaints</span>
-        <span class="count">{{ $c['open_complaints'] ?? 0 }}</span>
-    </a>
+    <x-nav-group label="City & accounts" icon="users" id="managing" :active="$managing">
+        <x-nav-item :href="$link('admin.barangays.index')" label="Barangays" icon="map"
+            pattern="admin.barangays.*" :count="$c['barangays'] ?? null" />
+        <x-nav-item :href="$link('admin.users.index')" label="Accounts" icon="users"
+            pattern="admin.users.*" />
+    </x-nav-group>
 
-    <a href="{{ $link('admin.requests.index') }}" class="nav-item {{ $active('admin.requests.*') }}">
-        <x-icon name="file" /> <span>Document Requests</span>
-        <span class="count">{{ $c['pending_docs'] ?? 0 }}</span>
-    </a>
-
-    <a href="{{ $link('admin.appointments.index') }}" class="nav-item {{ $active('admin.appointments.*') }}">
-        <x-icon name="calendar" /> <span>Appointments</span>
-        <span class="count">{{ $c['pending_appts'] ?? 0 }}</span>
-    </a>
-
-    <a href="{{ $link('admin.queue.index') }}" class="nav-item {{ $active('admin.queue.*') }}">
-        <x-icon name="ticket" /> <span>Queueing</span>
-        <span class="count">{{ $c['waiting'] ?? 0 }}</span>
-    </a>
-
-    {{-- The map plots complaints, so it belongs beside them rather than
-         filed under records - a first-time official looks for it there. --}}
-    <a href="{{ $link('admin.map.index') }}" class="nav-item {{ $active('admin.map.*') }}">
-        <x-icon name="pin" /> <span>Complaint Map</span>
-    </a>
-
-    <div class="nav-label">Publishing</div>
-
-    <a href="{{ $link('admin.announcements.index') }}" class="nav-item {{ $active('admin.announcements.*') }}">
-        <x-icon name="megaphone" /> <span>Announcements</span>
-    </a>
-
-    <a href="{{ $link('admin.lost-found.index') }}" class="nav-item {{ $active('admin.lost-found.*') }}">
-        <x-icon name="box" /> <span>Lost &amp; Found</span>
-    </a>
-
-    <a href="{{ $link('admin.jobs.index') }}" class="nav-item {{ $active('admin.jobs.*') }}">
-        <x-icon name="briefcase" /> <span>Livelihood &amp; Jobs</span>
-    </a>
-
-    <div class="nav-label">Administration</div>
-
-    <a href="{{ $link('admin.users.index') }}" class="nav-item {{ $active('admin.users.*') }}">
-        <x-icon name="users" /> <span>Accounts</span>
-    </a>
-
-    <a href="{{ route('admin.settings.edit') }}" class="nav-item {{ $active('admin.settings.*') }}">
-        <x-icon name="sliders" /> <span>Settings</span>
-    </a>
+    <x-nav-item :href="route('admin.settings.edit')" label="Settings" icon="sliders"
+        pattern="admin.settings.*" />
 </nav>

@@ -49,23 +49,143 @@
             toast(node.getAttribute('data-flash'), node.getAttribute('data-flash-type') || 'info');
             node.remove();
         });
+
+        initSidebar();
+        applyGroups();
     });
 
-    /* ---------- sidebar (mobile) ---------- */
+    /* ---------- sidebar: one control, two shapes ----------
+       Above 860px the panel is a column that can be folded away; below it, an
+       off-canvas drawer with a backdrop. The same hamburger drives both, and
+       the desktop choice is remembered between pages - which matters here
+       because every link is a full navigation, so a preference that only
+       lives in the DOM would reset on the next click. */
+    var DESKTOP = window.matchMedia('(min-width: 861px)');
+    var PREF_NAV = 'brgy:nav-collapsed';
+    var PREF_GROUPS = 'brgy:nav-groups';
+
+    function store(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) { /* private mode */ }
+    }
+
+    function read(key, fallback) {
+        try {
+            var v = localStorage.getItem(key);
+            return v === null ? fallback : v;
+        } catch (e) { return fallback; }
+    }
+
+    function sidebarEl() { return document.querySelector('.sidebar'); }
+    function backdropEl() { return document.querySelector('.sidebar-backdrop'); }
+
+    function sidebarOpen() {
+        var side = sidebarEl();
+        if (!side) return false;
+        return DESKTOP.matches
+            ? !document.body.classList.contains('nav-collapsed')
+            : side.classList.contains('open');
+    }
+
+    function setSidebar(open, remember) {
+        var side = sidebarEl();
+        if (!side) return;
+
+        if (DESKTOP.matches) {
+            document.body.classList.toggle('nav-collapsed', !open);
+            /* A folded panel must not linger open underneath the drawer once
+               the window is dragged back down to phone width. */
+            side.classList.remove('open');
+            if (backdropEl()) backdropEl().classList.remove('show');
+            if (remember !== false) store(PREF_NAV, open ? '0' : '1');
+        } else {
+            document.body.classList.remove('nav-collapsed');
+            side.classList.toggle('open', open);
+            if (backdropEl()) backdropEl().classList.toggle('show', open);
+        }
+
+        var burger = document.querySelector('[data-sidebar-toggle]');
+        if (burger) burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function initSidebar() {
+        var side = sidebarEl();
+        if (!side) return;
+
+        if (DESKTOP.matches) {
+            setSidebar(read(PREF_NAV, '0') !== '1');
+        } else {
+            setSidebar(false);
+        }
+    }
+
     document.addEventListener('click', function (e) {
-        var burger = e.target.closest('[data-sidebar-toggle]');
-        if (burger) {
-            var side = document.querySelector('.sidebar');
-            var back = document.querySelector('.sidebar-backdrop');
-            if (side) side.classList.toggle('open');
-            if (back) back.classList.toggle('show', side && side.classList.contains('open'));
+        if (e.target.closest('[data-sidebar-toggle]')) {
+            setSidebar(!sidebarOpen());
             return;
         }
         if (e.target.classList && e.target.classList.contains('sidebar-backdrop')) {
-            e.target.classList.remove('show');
-            var s = document.querySelector('.sidebar');
-            if (s) s.classList.remove('open');
+            setSidebar(false);
+            return;
         }
+        /* Picking a destination on a phone should land the user on the page,
+           not leave them looking at a drawer covering it. */
+        if (!DESKTOP.matches && e.target.closest('.sidebar a')) {
+            setSidebar(false);
+        }
+    });
+
+    /* Resizing across the breakpoint re-applies that shape rather than
+       leaving the panel in a state that belongs to the other one. */
+    var onShape = function () { initSidebar(); };
+    if (DESKTOP.addEventListener) DESKTOP.addEventListener('change', onShape);
+    else if (DESKTOP.addListener) DESKTOP.addListener(onShape);
+
+    /* ---------- nav groups ---------- */
+    function openGroups() {
+        return Array.prototype.slice.call(document.querySelectorAll('.nav-group')).map(function (g) {
+            return g.getAttribute('data-nav-group');
+        });
+    }
+
+    function activeGroup() {
+        var link = document.querySelector('.nav-group .nav-item.active');
+        var group = link && link.closest('.nav-group');
+        return group ? group.getAttribute('data-nav-group') : null;
+    }
+
+    function applyGroups() {
+        var stored = [];
+        try { stored = JSON.parse(read(PREF_GROUPS, '[]')) || []; } catch (e) { stored = []; }
+        var current = activeGroup();
+
+        document.querySelectorAll('.nav-group').forEach(function (g) {
+            var id = g.getAttribute('data-nav-group');
+            /* Wherever the officer is standing, that section stays open: the
+               current page has to be findable in the panel without a click. */
+            var open = id === current || stored.indexOf(id) !== -1;
+            g.classList.toggle('open', open);
+            var toggle = g.querySelector('[data-nav-toggle]');
+            if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    }
+
+    function persistGroups() {
+        var current = activeGroup();
+        var open = Array.prototype.slice.call(document.querySelectorAll('.nav-group.open'))
+            .map(function (g) { return g.getAttribute('data-nav-group'); })
+            .filter(function (id) { return id !== current; });
+        store(PREF_GROUPS, JSON.stringify(open));
+    }
+
+    document.addEventListener('click', function (e) {
+        var toggle = e.target.closest('[data-nav-toggle]');
+        if (!toggle) return;
+        var group = toggle.closest('.nav-group');
+        if (!group) return;
+        var open = !group.classList.contains('open');
+        group.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        persistGroups();
     });
 
     /* ---------- modals ---------- */
@@ -99,6 +219,8 @@
             if (open) {
                 open.classList.remove('open');
                 document.body.style.overflow = '';
+            } else if (!DESKTOP.matches && sidebarOpen()) {
+                setSidebar(false);
             }
         }
     });
