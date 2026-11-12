@@ -77,7 +77,9 @@
                 <div class="ico"><x-icon name="users" size="22" /></div>
                 <h3>No accounts found</h3>
                 <p>Nobody matches this filter. New registrations appear here automatically.</p>
-                <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Clear filters</a>
+                {{-- The toolbar above already shows Reset whenever a filter is
+                     active; a second link to the same place here was the third
+                     control doing one job on this page. --}}
             </div>
         @else
             <div class="table-wrap">

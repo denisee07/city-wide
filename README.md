@@ -257,16 +257,20 @@ database/migrations, database/seeders    schema and the demo data
 
 - `tests/` still holds only Laravel's two default example tests. Behaviour here is
   verified by rendering every page for every role, not by an automated suite.
-- Two administrator modals (Accounts and Appointments) rely on JavaScript to set
-  their submit target; with scripting off those two forms would fail. Every other
-  page works without JS.
-- Some administrator list pages still show both status tabs and a status dropdown
-  (Announcements, Jobs, Lost & Found, Accounts). Complaints, Document Requests
-  and Appointments have been consolidated; the rest are mid-pass.
 - In the default theme two decorative components sit just under the AA floor —
   the initials avatar and the brand mark, both 4.48:1 on their gradient fill.
   Terminal and high-contrast mode fix them.
-- `resources/views/welcome.blade.php` is dead: no route returns it.
+- On a phone-width screen the list-page toolbars stack vertically (the jobs
+  board reaches six rows). Nothing overflows horizontally, but the filter area
+  is tall; moving the chips above the toolbar would be the next step.
+
+**Closed since the first draft of this file:** the administrator list pages no
+longer show both tabs *and* a dropdown for the same choice (accounts,
+announcements, jobs and lost & found joined complaints, requests and
+appointments); the two edit modals no longer depend on JavaScript to build a
+valid request (they are rendered per record now, so a save works with scripting
+switched off); and `resources/views/welcome.blade.php`, the Laravel skeleton page
+no route ever returned, has been deleted.
 
 
 ## Licence

@@ -90,7 +90,6 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('vendor/leaflet/leaflet.css') }}">
 <style>
-    .empty .ico svg { width: 26px; height: 26px; background: none; border: 0; border-radius: 0; margin: auto; }
     #mapList .queue-row { cursor: pointer; }
 </style>
 @endpush

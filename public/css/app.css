@@ -872,6 +872,17 @@ p:last-child { margin-bottom: 0; }
     color: var(--dim);
     font-size: 1.4rem;
 }
+/* The glyph inside that tile must not inherit the tile's own background,
+   border and radius - otherwise the icon reads as a box inside a box. This
+   rule was repeated, character for character, in ten resident views; one copy
+   here means a future empty state cannot forget it. */
+.empty .ico svg {
+    width: 26px; height: 26px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    margin: auto;
+}
 .empty h3 { color: var(--text); margin-bottom: .35rem; }
 .empty p { font-size: .87rem; margin-bottom: 1.1rem; }
 

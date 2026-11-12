@@ -186,7 +186,6 @@
 
 @push('styles')
 <style>
-    .empty .ico svg { width: 26px; height: 26px; background: none; border: 0; border-radius: 0; margin: auto; }
     .ticket .row > div { text-align: center; }
 </style>
 @endpush

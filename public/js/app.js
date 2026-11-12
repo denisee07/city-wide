@@ -346,13 +346,6 @@
             });
     });
 
-    document.addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-confirm-click]');
-        if (btn && !window.confirm(btn.getAttribute('data-confirm-click'))) {
-            e.preventDefault();
-        }
-    });
-
     /* ---------- client-side table filtering ---------- */
     document.addEventListener('input', function (e) {
         var input = e.target.closest('[data-filter]');

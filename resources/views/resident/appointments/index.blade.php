@@ -83,7 +83,7 @@
                                         <span class="grow"></span>
                                         @if (in_array($appointment->status, ['pending', 'confirmed'], true))
                                             <form method="POST" action="{{ route('resident.appointments.cancel', $appointment) }}"
-                                                  data-confirm-click="Cancel appointment {{ $appointment->reference_no }}?">
+                                                  data-confirm="Cancel appointment {{ $appointment->reference_no }}?">
                                                 @csrf
                                                 <button class="btn btn-sm btn-danger" type="submit">
                                                     <x-icon name="x" size="14" /> Cancel
@@ -129,8 +129,3 @@
     @endif
 @endsection
 
-@push('styles')
-<style>
-    .empty .ico svg { width: 26px; height: 26px; background: none; border: 0; border-radius: 0; margin: auto; }
-</style>
-@endpush
