@@ -90,13 +90,16 @@ class AppointmentController extends Controller
                     'label' => $appointment->statusLabel(),
                     'remark' => $appointment->remarks,
                 ],
-                /* The Manage button prefills the modal from these, so they have
-                   to follow the save or the next open offers a stale value. */
+                /* Re-render this booking's own form so it agrees with what was
+                   just saved. Left alone, the selects inside would still hold
+                   the pre-save status and a second press of Save would quietly
+                   put it back. */
                 [
-                    'selector' => sprintf('[data-record-id="%d"] [data-modal-open="manageAppointment"]', $appointment->id),
-                    'attrs' => [
-                        'data-status' => $appointment->status,
-                        'data-remarks' => (string) $appointment->remarks,
+                    'selector' => sprintf('[data-manage-slot="%d"]', $appointment->id),
+                    'view' => 'admin.appointments.partials.manage-modal',
+                    'data' => [
+                        'booking' => $appointment,
+                        'statuses' => Appointment::STATUSES,
                     ],
                 ],
             ],

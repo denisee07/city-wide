@@ -114,7 +114,6 @@
                 <div class="row between">
                     <span class="tiny dim">Required fields are marked with an asterisk.</span>
                     <div class="row">
-                        <a href="{{ route('resident.complaints.index') }}" class="btn btn-ghost">Cancel</a>
                         <button class="btn btn-primary" type="submit">
                             <x-icon name="send" /> Submit complaint
                         </button>

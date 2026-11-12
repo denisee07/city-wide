@@ -16,7 +16,11 @@
             <p class="sub">Compose a bulletin for the resident portal and public website.</p>
         </div>
         <div class="row">
-            <a href="{{ route('admin.announcements.index') }}" class="btn btn-ghost">Cancel</a>
+            {{-- The one escape link on this page (the foot's duplicate went), so
+                 it names where it actually lands instead of just "Cancel". --}}
+            <a href="{{ route('admin.announcements.index') }}" class="btn btn-ghost">
+                <x-icon name="chevron" size="14" /> Back to announcements
+            </a>
         </div>
     </div>
 
@@ -49,7 +53,6 @@
                 <div class="card-foot row between">
                     <span class="tiny dim">Unpublished announcements stay hidden from residents.</span>
                     <div class="row">
-                        <a href="{{ route('admin.announcements.index') }}" class="btn btn-ghost">Discard</a>
                         <button type="submit" class="btn btn-primary">
                             <x-icon name="check" size="15" /> Save announcement
                         </button>

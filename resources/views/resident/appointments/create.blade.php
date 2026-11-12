@@ -100,7 +100,6 @@
                 <div class="row between">
                     <span class="tiny dim">You will receive an APT reference number after booking.</span>
                     <div class="row">
-                        <a href="{{ route('resident.appointments.index') }}" class="btn btn-ghost">Cancel</a>
                         <button class="btn btn-primary" type="submit">
                             <x-icon name="send" /> Book appointment
                         </button>

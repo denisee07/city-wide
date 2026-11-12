@@ -87,7 +87,6 @@
                 <div class="row between">
                     <span class="tiny dim">Processing happens at the barangay records desk.</span>
                     <div class="row">
-                        <a href="{{ route('resident.documents.index') }}" class="btn btn-ghost">Cancel</a>
                         <button class="btn btn-primary" type="submit">
                             <x-icon name="send" /> Submit request
                         </button>

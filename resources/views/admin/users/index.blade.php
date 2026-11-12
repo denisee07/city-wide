@@ -1,4 +1,4 @@
-@php
+?@php
     $portal = 'admin';
 @endphp
 @extends('layouts.portal')
@@ -33,17 +33,22 @@
     </div>
 
     {{-- ============ tabs ============ --}}
+    {{-- One set of controls per choice: the tabs already decide role and the
+       Suspended tab is the only status anyone filters by in practice, so the
+       two dropdowns underneath (All roles / All statuses) are gone - they
+       could disagree with the tab that was visibly active. ListFilters carries
+       the search term and the barangay drill-down across a tab change. --}}
     <div class="tabs">
-        <a href="{{ route('admin.users.index') }}" class="tab {{ ! $currentRole && ! $currentStatus ? 'active' : '' }}">
+        <a href="{{ route('admin.users.index', \App\Support\ListFilters::with('role', null)) }}" class="tab {{ ! $currentRole && ! $currentStatus ? 'active' : '' }}">
             Everyone <span class="count">{{ $counts['all'] }}</span>
         </a>
-        <a href="{{ route('admin.users.index', ['role' => 'resident']) }}" class="tab {{ $currentRole === 'resident' ? 'active' : '' }}">
+        <a href="{{ route('admin.users.index', \App\Support\ListFilters::with('role', 'resident')) }}" class="tab {{ $currentRole === 'resident' ? 'active' : '' }}">
             Residents <span class="count">{{ $counts['resident'] }}</span>
         </a>
-        <a href="{{ route('admin.users.index', ['role' => 'city_admin']) }}" class="tab {{ $currentRole === 'city_admin' ? 'active' : '' }}">
+        <a href="{{ route('admin.users.index', \App\Support\ListFilters::with('role', 'city_admin')) }}" class="tab {{ $currentRole === 'city_admin' ? 'active' : '' }}">
             City administrators <span class="count">{{ $counts['city_admin'] }}</span>
         </a>
-        <a href="{{ route('admin.users.index', ['status' => 'suspended']) }}" class="tab {{ $currentStatus === 'suspended' ? 'active' : '' }}">
+        <a href="{{ route('admin.users.index', \App\Support\ListFilters::with('status', 'suspended')) }}" class="tab {{ $currentStatus === 'suspended' ? 'active' : '' }}">
             Suspended <span class="count">{{ $counts['suspended'] }}</span>
         </a>
     </div>
@@ -56,22 +61,11 @@
                     value="{{ old('q', request('q')) }}">
             </div>
 
-            <select name="role" class="select" style="width:auto; min-width:140px">
-                <option value="">All roles</option>
-                @foreach ($roleLabels as $key => $label)
-                    <option value="{{ $key }}" @selected($currentRole === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-
-            <select name="status" class="select" style="width:auto; min-width:140px">
-                <option value="">All statuses</option>
-                @foreach ($statusLabels as $key => $label)
-                    <option value="{{ $key }}" @selected($currentStatus === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-
             <button type="submit" class="btn btn-primary"><x-icon name="search" size="15" /> Apply</button>
-            <a href="{{ route('admin.users.index') }}" class="btn btn-ghost">Reset</a>
+
+            @if (request()->hasAny(['q', 'role', 'status']))
+                <a href="{{ route('admin.users.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
             <span class="small dim grow right" data-result-count>{{ $users->total() }} account(s)</span>
         </div>
     </form>
@@ -122,14 +116,7 @@
                                             <span class="tiny dim">Your account</span>
                                         @else
                                             <button type="button" class="btn btn-sm btn-info"
-                                                data-modal-open="manageUser"
-                                                data-url="{{ route('admin.users.update', $user) }}"
-                                                data-name="{{ $user->name }}"
-                                                {{-- Always one of the two values the modal offers. Handing it a
-                                                     retired 'staff' or 'admin' would leave the select on its
-                                                     first option and quietly demote the account on save. --}}
-                                                data-role="{{ $user->isOfficial() ? 'city_admin' : 'resident' }}"
-                                                data-status="{{ $user->status }}">
+                                                data-modal-open="manage-user-{{ $user->id }}">
                                                 <x-icon name="sliders" size="14" /> Manage
                                             </button>
 
@@ -137,12 +124,26 @@
                                                 data-confirm="Delete {{ $user->name }}? Their complaints and requests will also be removed.">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger btn-icon" title="Delete account">
+                                                <button type="submit" class="btn btn-sm btn-danger btn-icon" title="Delete {{ $user->name }}'s account">
                                                     <x-icon name="trash" size="14" />
                                                 </button>
                                             </form>
                                         @endif
                                     </div>
+
+                                    {{-- The form lives here, rendered for this one
+                                         account, so its action and current values are
+                                         correct in the HTML the server sent. The slot
+                                         attribute lets an ajax save re-render it. --}}
+                                    @if ($user->id !== $me)
+                                        <div data-manage-slot="{{ $user->id }}">
+                                            @include('admin.users.partials.manage-modal', [
+                                                'user' => $user,
+                                                'roleLabels' => $roleLabels,
+                                                'statusLabels' => $statusLabels,
+                                            ])
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -188,83 +189,4 @@
         @endif
     </section>
 
-    {{-- ============ manage modal ============ --}}
-    <div class="modal" id="manageUser">
-        <div class="modal-backdrop" data-modal-close></div>
-        <div class="modal-card">
-            <div class="modal-head">
-                <div>
-                    <div class="eyebrow">Account</div>
-                    <h3 id="userTitle" class="mb-0">Manage account</h3>
-                </div>
-                <button type="button" class="modal-x" data-modal-close>&times;</button>
-            </div>
-
-            <form method="POST" id="userForm" data-ajax action="{{ route('admin.users.index') }}">
-                @csrf
-                @method('PATCH')
-
-                <div class="modal-body stack">
-                    <div class="alert alert-warning">
-                        <x-icon name="shield" size="17" />
-                        <div class="small mb-0">
-                            Role decides what this account can access. Suspending signs the user out
-                            and blocks the next login.
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="userRole">Role <span class="req">*</span></label>
-                        <select id="userRole" name="role" class="select">
-                            @foreach ($roleLabels as $key => $label)
-                                <option value="{{ $key }}" @selected(old('role') === $key)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        <div class="help">A resident uses the public portal. A City Administrator uses the console for the whole city.</div>
-                        @error('role')<div class="error">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="userStatus">Status <span class="req">*</span></label>
-                        <select id="userStatus" name="status" class="select">
-                            @foreach ($statusLabels as $key => $label)
-                                <option value="{{ $key }}" @selected(old('status') === $key)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('status')<div class="error">{{ $message }}</div>@enderror
-                    </div>
-                </div>
-
-                <div class="modal-foot">
-                    <button type="button" class="btn btn-ghost" data-modal-close>Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <x-icon name="check" size="15" /> Save account
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var form = document.getElementById('userForm');
-            if (!form) return;
-
-            document.querySelectorAll('[data-modal-open="manageUser"]').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    form.action = btn.getAttribute('data-url') || form.action;
-
-                    document.getElementById('userTitle').textContent = btn.getAttribute('data-name') || 'Manage account';
-
-                    var role = btn.getAttribute('data-role');
-                    var status = btn.getAttribute('data-status');
-
-                    if (role) document.getElementById('userRole').value = role;
-                    if (status) document.getElementById('userStatus').value = status;
-                });
-            });
-        });
-    </script>
-@endpush

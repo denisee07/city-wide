@@ -19,7 +19,9 @@
             <p class="sub">Share an opening with residents looking for work.</p>
         </div>
         <div class="row">
-            <a href="{{ route('admin.jobs.index') }}" class="btn btn-ghost">Cancel</a>
+            <a href="{{ route('admin.jobs.index') }}" class="btn btn-ghost">
+                <x-icon name="chevron" size="14" /> Back to jobs
+            </a>
         </div>
     </div>
 
@@ -106,7 +108,6 @@
                 <div class="card-foot row between">
                     <span class="tiny dim">Posts appear on the resident portal once saved.</span>
                     <div class="row">
-                        <a href="{{ route('admin.jobs.index') }}" class="btn btn-ghost">Discard</a>
                         <button type="submit" class="btn btn-primary">
                             <x-icon name="check" size="15" /> Publish post
                         </button>

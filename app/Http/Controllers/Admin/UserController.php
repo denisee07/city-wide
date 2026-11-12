@@ -145,16 +145,18 @@ class UserController extends Controller
                     'badge' => self::STATUS_BADGES[$user->status] ?? 'badge-neutral',
                     'label' => self::STATUSES[$user->status] ?? ucfirst($user->status),
                 ],
-                /* The Manage button prefills the modal from these, so they have
-                   to follow the save or the next open offers a stale value. */
+                /* Each row carries its own server-rendered account form, so an
+                   ajax save re-renders it. Leaving the old one in the DOM would
+                   let a second press of Save quietly undo the first, because the
+                   selects inside would still hold the values from before the
+                   change. */
                 [
-                    'selector' => sprintf('[data-record-id="%d"] [data-modal-open="manageUser"]', $user->id),
-                    'attrs' => [
-                        /* Always one of the two values the select offers, even
-                           when the row itself still carries a retired role. */
-                        'data-role' => $data['role'],
-                        'data-status' => $user->status,
-                        'data-name' => $user->name,
+                    'selector' => sprintf('[data-manage-slot="%d"]', $user->id),
+                    'view' => 'admin.users.partials.manage-modal',
+                    'data' => [
+                        'user' => $user,
+                        'roleLabels' => self::ROLES,
+                        'statusLabels' => self::STATUSES,
                     ],
                 ],
             ],

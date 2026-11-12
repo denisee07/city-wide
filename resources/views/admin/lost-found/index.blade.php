@@ -32,7 +32,8 @@
         <div class="toolbar">
             <div class="row gap-1" style="gap:.45rem">
                 @foreach ($chips as $key => $label)
-                    <a href="{{ route('admin.lost-found.index', $key === 'all' ? [] : ['status' => $key]) }}"
+                    {{-- ListFilters keeps the search term when a chip is picked. --}}
+                    <a href="{{ route('admin.lost-found.index', \App\Support\ListFilters::with('status', $key === 'all' ? null : $key)) }}"
                         class="chip {{ $active === $key ? 'active' : '' }}">
                         {{ $label }}
                         <span class="tiny dim">{{ $counts[$key] }}</span>
@@ -45,10 +46,14 @@
                     value="{{ old('q', request('q')) }}">
             </div>
 
+            {{-- Carries the chip choice into the form so Search keeps it. --}}
             @if (request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
 
             <button type="submit" class="btn btn-primary"><x-icon name="search" size="15" /> Search</button>
-            <a href="{{ route('admin.lost-found.index') }}" class="btn btn-ghost">Reset</a>
+
+            @if (request()->hasAny(['q', 'status']))
+                <a href="{{ route('admin.lost-found.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
         </div>
     </form>
 

@@ -101,18 +101,11 @@
                     <h2 class="card-title"><x-icon name="bell" /> Stay updated</h2>
                 </div>
                 <div class="card-body">
-                    <p class="small muted">Announcements are posted here the moment they are approved by the barangay hall.</p>
-                    <div class="stack-sm">
-                        <a href="{{ route('resident.queue.index') }}" class="btn btn-block">
-                            <x-icon name="ticket" /> Queue board
-                        </a>
-                        <a href="{{ route('resident.freedom-wall.index') }}" class="btn btn-block">
-                            <x-icon name="chat" /> Freedom wall
-                        </a>
-                        <a href="{{ route('resident.map.index') }}" class="btn btn-block">
-                            <x-icon name="map" /> Barangay map
-                        </a>
-                    </div>
+                    <p class="small muted mb-0">Announcements are posted here the moment they are approved by the barangay hall.</p>
+                    {{-- The three buttons under this sentence went to the queue
+                         board, the freedom wall and the map — all three already
+                         sit in the Community group of the sidebar the visitor is
+                         reading this from. --}}
                 </div>
             </div>
         </div>

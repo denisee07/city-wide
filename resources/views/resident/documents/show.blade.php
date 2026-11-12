@@ -48,8 +48,12 @@
             <a href="{{ route('resident.documents.index') }}" class="btn btn-ghost">
                 <x-icon name="chevron" size="14" /> All requests
             </a>
-            <a href="{{ route('resident.documents.create') }}" class="btn btn-primary">
-                <x-icon name="plus" /> New request
+            {{-- Three actions in this head, only one of which is the point of
+                 the page. Two btn-primary side by side ("Print certificate" and
+                 "New request") gave the eye two equally loud answers, so the
+                 start-a-new-one link is now visibly secondary. --}}
+            <a href="{{ route('resident.documents.create') }}" class="btn">
+                <x-icon name="plus" size="14" /> New request
             </a>
         </div>
     </div>

@@ -17,14 +17,19 @@
             <h1>Kumusta, {{ explode(' ', $user->name)[0] }}!</h1>
             <p class="sub">{{ now()->format('l, F j, Y') }} · {{ $barangay['name'] }}</p>
         </div>
-        <div class="row">
-            <a href="{{ route('resident.appointments.create') }}" class="btn">
-                <x-icon name="calendar" /> Book appointment
-            </a>
-            <a href="{{ route('resident.complaints.create') }}" class="btn btn-primary">
-                <x-icon name="plus" /> File a complaint
-            </a>
-        </div>
+        {{-- The first-visit welcome panel below already offers "File a
+             complaint" and "Book a slot". Showing both sets at once gave a new
+             resident two buttons for the same two jobs. --}}
+        @unless ($isFirstVisit ?? false)
+            <div class="row">
+                <a href="{{ route('resident.appointments.create') }}" class="btn">
+                    <x-icon name="calendar" /> Book appointment
+                </a>
+                <a href="{{ route('resident.complaints.create') }}" class="btn btn-primary">
+                    <x-icon name="plus" /> File a complaint
+                </a>
+            </div>
+        @endunless
     </div>
 
     {{-- ============ at a glance ============ --}}
@@ -202,34 +207,14 @@
 
         {{-- ============ right column ============ --}}
         <div class="stack">
-            <div class="card">
-                <div class="card-head">
-                    <h2 class="card-title"><x-icon name="grid" /> Quick actions</h2>
-                </div>
-                <div class="card-body">
-                    <div class="grid grid-2">
-                        <a href="{{ route('resident.documents.create') }}" class="btn btn-ghost btn-block">
-                            <x-icon name="file" /> Request a document
-                        </a>
-                        <a href="{{ route('resident.queue.index') }}" class="btn btn-ghost btn-block">
-                            <x-icon name="ticket" /> Take a queue number
-                        </a>
-                        <a href="{{ route('resident.lost-found.index') }}" class="btn btn-ghost btn-block">
-                            <x-icon name="box" /> Lost &amp; found
-                        </a>
-                        <a href="{{ route('resident.jobs.index') }}" class="btn btn-ghost btn-block">
-                            <x-icon name="briefcase" /> Livelihood board
-                        </a>
-                        <a href="{{ route('resident.freedom-wall.index') }}" class="btn btn-ghost btn-block">
-                            <x-icon name="chat" /> Freedom wall
-                        </a>
-                        <a href="{{ route('resident.map.index') }}" class="btn btn-ghost btn-block">
-                            <x-icon name="map" /> Barangay map
-                        </a>
-                    </div>
-                </div>
-            </div>
-
+            {{-- The "Quick actions" panel that sat here was six buttons, and
+                 four of them were the sidebar rows repeated (Lost & found,
+                 Livelihood, Freedom wall, Barangay map), one was the queue
+                 card's own "Take a number" underneath it, and one (Request a
+                 document) is the first button on the Documents page. A link
+                 farm beside a navigation menu is how a panel starts to look
+                 untrustworthy, so the panel is gone and the sidebar is the
+                 single source of destinations. --}}
             <div class="card">
                 <div class="card-head">
                     <h2 class="card-title"><x-icon name="ticket" /> Today at the hall</h2>

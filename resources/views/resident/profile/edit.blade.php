@@ -186,24 +186,9 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-head">
-                    <h2 class="card-title"><x-icon name="grid" /> Your shortcuts</h2>
-                </div>
-                <div class="card-body">
-                    <div class="stack-sm">
-                        <a href="{{ route('resident.complaints.index') }}" class="btn btn-block">
-                            <x-icon name="alert" /> My complaints
-                        </a>
-                        <a href="{{ route('resident.documents.index') }}" class="btn btn-block">
-                            <x-icon name="file" /> Document requests
-                        </a>
-                        <a href="{{ route('resident.appointments.index') }}" class="btn btn-block">
-                            <x-icon name="calendar" /> Appointments
-                        </a>
-                    </div>
-                </div>
-            </div>
+            {{-- "My complaints / Document requests / Appointments" repeated the
+                 three sidebar rows a resident is already looking at, so the
+                 card went. The sidebar is the only place destinations live. --}}
         </div>
     </form>
 @endsection

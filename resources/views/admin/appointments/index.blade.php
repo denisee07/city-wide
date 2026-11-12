@@ -113,14 +113,19 @@
                                         <td class="nowrap tiny dim">{{ $booking->processor?->name ?? '—' }}</td>
                                         <td class="right nowrap">
                                             <button type="button" class="btn btn-sm btn-ghost"
-                                                data-modal-open="manageAppointment"
-                                                data-url="{{ route('admin.appointments.update', $booking) }}"
-                                                data-ref="{{ $booking->reference_no }}"
-                                                data-subject="{{ $booking->subject }}"
-                                                data-status="{{ $booking->status }}"
-                                                data-remarks="{{ $booking->remarks }}">
+                                                data-modal-open="manage-appt-{{ $booking->id }}">
                                                 <x-icon name="sliders" size="14" /> Manage
                                             </button>
+
+                                            {{-- Server-rendered form for this booking, so
+                                                 its action and current values are correct
+                                                 before any script has run. --}}
+                                            <div data-manage-slot="{{ $booking->id }}">
+                                                @include('admin.appointments.partials.manage-modal', [
+                                                    'booking' => $booking,
+                                                    'statuses' => $statuses,
+                                                ])
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -132,78 +137,4 @@
         </div>
     @endif
 
-    {{-- ============ quick update modal ============ --}}
-    <div class="modal" id="manageAppointment">
-        <div class="modal-backdrop" data-modal-close></div>
-        <div class="modal-card">
-            <div class="modal-head">
-                <div>
-                    <div class="eyebrow">Appointment</div>
-                    <h3 id="apptTitle" class="mb-0">Update booking</h3>
-                </div>
-                <button type="button" class="modal-x" data-modal-close>&times;</button>
-            </div>
-
-            <form method="POST" id="apptForm" data-ajax action="{{ route('admin.appointments.index') }}">
-                @csrf
-                @method('PATCH')
-
-                <div class="modal-body stack">
-                    <div class="alert alert-info mb-0">
-                        <x-icon name="info" size="17" />
-                        <div class="small" id="apptMeta">Pick a new status for this booking.</div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="apptStatus">Status <span class="req">*</span></label>
-                        <select id="apptStatus" name="status" class="select">
-                            @foreach ($statuses as $key => $label)
-                                <option value="{{ $key }}" @selected(old('status') === $key)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('status')<div class="error">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="apptRemarks">Remarks</label>
-                        <textarea id="apptRemarks" name="remarks" class="textarea" rows="3"
-                            placeholder="Confirmation details, reason for cancellation, notes for the staff…">{{ old('remarks') }}</textarea>
-                        @error('remarks')<div class="error">{{ $message }}</div>@enderror
-                    </div>
-                </div>
-
-                <div class="modal-foot">
-                    <button type="button" class="btn btn-ghost" data-modal-close>Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <x-icon name="check" size="15" /> Save booking
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 @endsection
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var form = document.getElementById('apptForm');
-            if (!form) return;
-
-            document.querySelectorAll('[data-modal-open="manageAppointment"]').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    form.action = btn.getAttribute('data-url') || form.action;
-
-                    document.getElementById('apptTitle').textContent = btn.getAttribute('data-subject') || 'Update booking';
-                    document.getElementById('apptMeta').textContent =
-                        (btn.getAttribute('data-ref') || '') + ' — choose a status and add remarks if needed.';
-
-                    var status = btn.getAttribute('data-status');
-                    var select = document.getElementById('apptStatus');
-                    if (status) select.value = status;
-
-                    document.getElementById('apptRemarks').value = btn.getAttribute('data-remarks') || '';
-                });
-            });
-        });
-    </script>
-@endpush

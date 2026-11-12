@@ -59,9 +59,9 @@
                     @include('admin.queue.partials.next-list')
                 </div>
 
-                <button type="button" class="btn btn-primary btn-block" data-modal-open="callNext">
-                    <x-icon name="megaphone" size="15" /> Call the next resident
-                </button>
+                {{-- The "Call next resident" button in the page head opens this
+                     same modal. Two buttons, one action, both on screen at once
+                     - the duplicate here is the one that went. --}}
             </div>
         </section>
     </div>

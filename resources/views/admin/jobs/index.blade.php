@@ -25,13 +25,16 @@
     <form method="GET" data-filter-ajax action="{{ route('admin.jobs.index') }}">
         <div class="toolbar">
             <div class="row" style="gap:.45rem">
-                <a href="{{ route('admin.jobs.index') }}" class="chip {{ $active === 'all' ? 'active' : '' }}">
+                {{-- Chips are the status control, and ListFilters carries the
+                   search term and category across a chip change instead of
+                   silently dropping them back to blank. --}}
+                <a href="{{ route('admin.jobs.index', \App\Support\ListFilters::with('status', null)) }}" class="chip {{ $active === 'all' ? 'active' : '' }}">
                     All <span class="tiny dim">{{ $total }}</span>
                 </a>
-                <a href="{{ route('admin.jobs.index', ['status' => 'open']) }}" class="chip {{ $active === 'open' ? 'active' : '' }}">
+                <a href="{{ route('admin.jobs.index', \App\Support\ListFilters::with('status', 'open')) }}" class="chip {{ $active === 'open' ? 'active' : '' }}">
                     Open <span class="tiny dim">{{ $openCount }}</span>
                 </a>
-                <a href="{{ route('admin.jobs.index', ['status' => 'closed']) }}" class="chip {{ $active === 'closed' ? 'active' : '' }}">
+                <a href="{{ route('admin.jobs.index', \App\Support\ListFilters::with('status', 'closed')) }}" class="chip {{ $active === 'closed' ? 'active' : '' }}">
                     Closed <span class="tiny dim">{{ $closedCount }}</span>
                 </a>
             </div>
@@ -41,17 +44,22 @@
                     value="{{ old('q', request('q')) }}">
             </div>
 
-            <select name="category" class="select" style="width:auto; min-width:190px">
+            <select name="category" class="select filter-select">
                 <option value="">All categories</option>
                 @foreach ($categories as $key => $label)
                     <option value="{{ $key }}" @selected(request('category') === $key)>{{ $label }}</option>
                 @endforeach
             </select>
 
+            {{-- Carries the chip choice into the form so pressing Apply does not
+                 quietly return you to "All". --}}
             @if (request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
 
             <button type="submit" class="btn btn-primary"><x-icon name="search" size="15" /> Apply</button>
-            <a href="{{ route('admin.jobs.index') }}" class="btn btn-ghost">Reset</a>
+
+            @if (request()->hasAny(['q', 'category', 'status']))
+                <a href="{{ route('admin.jobs.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
         </div>
     </form>
 

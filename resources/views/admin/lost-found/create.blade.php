@@ -20,7 +20,9 @@
             <p class="sub">Log something a resident lost or handed in at the barangay hall.</p>
         </div>
         <div class="row">
-            <a href="{{ route('admin.lost-found.index') }}" class="btn btn-ghost">Cancel</a>
+            <a href="{{ route('admin.lost-found.index') }}" class="btn btn-ghost">
+                <x-icon name="chevron" size="14" /> Back to lost &amp; found
+            </a>
         </div>
     </div>
 
@@ -87,7 +89,6 @@
                 <div class="card-foot row between">
                     <span class="tiny dim">Residents can claim items at the barangay hall.</span>
                     <div class="row">
-                        <a href="{{ route('admin.lost-found.index') }}" class="btn btn-ghost">Discard</a>
                         <button type="submit" class="btn btn-primary">
                             <x-icon name="check" size="15" /> Save item
                         </button>

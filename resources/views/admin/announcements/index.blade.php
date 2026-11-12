@@ -23,14 +23,18 @@
         </div>
     </div>
 
+    {{-- ============ state tabs ============ --}}
+    {{-- The tabs carry the counts, so they are the state control; the second
+           dropdown for the same thing (Any state / Published / Draft) is gone.
+           ListFilters keeps the search term and category when you switch. --}}
     <div class="tabs">
-        <a href="{{ route('admin.announcements.index') }}" class="tab {{ ! request('published') ? 'active' : '' }}">
+        <a href="{{ route('admin.announcements.index', \App\Support\ListFilters::with('published', null)) }}" class="tab {{ ! request('published') ? 'active' : '' }}">
             All <span class="count">{{ $publishedCount + $draftCount }}</span>
         </a>
-        <a href="{{ route('admin.announcements.index', ['published' => 'published']) }}" class="tab {{ request('published') === 'published' ? 'active' : '' }}">
+        <a href="{{ route('admin.announcements.index', \App\Support\ListFilters::with('published', 'published')) }}" class="tab {{ request('published') === 'published' ? 'active' : '' }}">
             Published <span class="count">{{ $publishedCount }}</span>
         </a>
-        <a href="{{ route('admin.announcements.index', ['published' => 'draft']) }}" class="tab {{ request('published') === 'draft' ? 'active' : '' }}">
+        <a href="{{ route('admin.announcements.index', \App\Support\ListFilters::with('published', 'draft')) }}" class="tab {{ request('published') === 'draft' ? 'active' : '' }}">
             Drafts <span class="count">{{ $draftCount }}</span>
         </a>
     </div>
@@ -41,21 +45,18 @@
                 <input type="search" name="q" class="input" placeholder="Search title or body…" value="{{ old('q', request('q')) }}">
             </div>
 
-            <select name="category" class="select" style="width:auto; min-width:190px">
+            <select name="category" class="select filter-select">
                 <option value="">All categories</option>
                 @foreach ($categories as $key => $label)
                     <option value="{{ $key }}" @selected(request('category') === $key)>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="published" class="select" style="width:auto; min-width:140px">
-                <option value="">Any state</option>
-                <option value="published" @selected(request('published') === 'published')>Published</option>
-                <option value="draft" @selected(request('published') === 'draft')>Draft</option>
-            </select>
-
             <button type="submit" class="btn btn-primary"><x-icon name="search" size="15" /> Apply</button>
-            <a href="{{ route('admin.announcements.index') }}" class="btn btn-ghost">Reset</a>
+
+            @if (request()->hasAny(['q', 'category', 'published']))
+                <a href="{{ route('admin.announcements.index') }}" class="btn btn-ghost">Reset</a>
+            @endif
         </div>
     </form>
 

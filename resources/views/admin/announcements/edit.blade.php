@@ -56,7 +56,6 @@
                 <div class="card-foot row between">
                     <span class="tiny dim">Last updated {{ $announcement->updated_at->diffForHumans() }}</span>
                     <div class="row">
-                        <a href="{{ route('admin.announcements.index') }}" class="btn btn-ghost">Cancel</a>
                         <button type="submit" class="btn btn-primary">
                             <x-icon name="check" size="15" /> Save changes
                         </button>
