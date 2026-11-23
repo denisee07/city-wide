@@ -49,7 +49,7 @@
                         ? (\App\Models\Barangay::query()->whereKey($filterId)->value('name') ?? 'All 18 barangays')
                         : 'All 18 barangays';
                 @endphp
-                <span class="badge badge-violet shrink-0"
+                <span class="badge badge-violet scope-pill shrink-0"
                       title="Every list on this console is showing {{ $scopeName }}">
                     {{ $scopeName }}
                     @if ($filterId)
