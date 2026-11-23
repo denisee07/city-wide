@@ -42,9 +42,6 @@
     <x-nav-item :href="route('resident.map.index')" label="Barangay Map" icon="map"
         pattern="resident.map.*" />
 
-    <x-nav-item :href="route('resident.notifications.index')" label="Notifications" icon="bell"
-        pattern="resident.notifications.*" />
-
     <x-nav-item :href="route('resident.profile.edit')" label="My Profile" icon="user"
         pattern="resident.profile.*" />
 </nav>

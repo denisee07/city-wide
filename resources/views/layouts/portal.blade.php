@@ -61,6 +61,50 @@
                 </span>
             @endif
 
+            {{-- ============ notification bell ============ --}}
+            {{-- Top-right, where every UI puts notifications: the badge shows
+                 unread count, and the dropdown lists the newest items without
+                 leaving the page. <details> keeps it working with no script. --}}
+            @php
+                $unread = \App\Models\Notification::where('user_id', auth()->id())->whereNull('read_at')->count();
+                $recent = \App\Models\Notification::where('user_id', auth()->id())->latest()->take(5)->get();
+            @endphp
+            <details class="notif-menu shrink-0">
+                <summary class="notif-bell" aria-label="Notifications{{ $unread ? " ({$unread} unread)" : '' }}">
+                    <x-icon name="bell" size="18" />
+                    @if ($unread)
+                        <span class="notif-badge">{{ $unread > 99 ? '99+' : $unread }}</span>
+                    @endif
+                </summary>
+                <div class="notif-panel">
+                    <div class="notif-head">
+                        <strong>Notifications</strong>
+                        <form method="POST" action="{{ route(($portal === 'admin' ? 'admin' : 'resident').'.notifications.read-all') }}">
+                            @csrf
+                            <button type="submit" class="tiny notif-markall">Mark all read</button>
+                        </form>
+                    </div>
+                    @if ($recent->isEmpty())
+                        <div class="notif-empty tiny dim">Nothing yet — updates will land here.</div>
+                    @else
+                        <div class="notif-list">
+                            @foreach ($recent as $n)
+                                <a href="{{ route(($portal === 'admin' ? 'admin' : 'resident').'.notifications.read', ['notification' => $n]) }}"
+                                   class="notif-item {{ $n->isUnread() ? 'unread' : '' }}">
+                                    <span class="notif-title">{{ $n->title }}</span>
+                                    @if ($n->body)
+                                        <span class="notif-body tiny dim">{{ \Illuminate\Support\Str::limit($n->body, 60) }}</span>
+                                    @endif
+                                    <span class="notif-time tiny dim">{{ $n->created_at->diffForHumans() }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                        <a href="{{ route(($portal === 'admin' ? 'admin' : 'resident').'.notifications.index') }}"
+                           class="notif-all tiny">View all notifications</a>
+                    @endif
+                </div>
+            </details>
+
             {{-- Display & accessibility belongs to the person, not to the
                  account, so it sits in the shared top bar rather than in a
                  profile page someone may never open. --}}

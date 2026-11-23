@@ -110,7 +110,7 @@ class EventController extends Controller
             'attended_at' => now(),
             'attended_by' => auth()->id(),
         ]);
-        Notification::push($registration->user_id, 'Event attendance recorded', 'Your attendance for '.$registration->event->title.' has been recorded.', 'success', 'event');
+        Notification::send($registration->user_id, 'Event attendance recorded', 'Your attendance for '.$registration->event->title.' has been recorded.', 'success', 'event');
         return redirect()->route('admin.events.scan')->with('status', 'Attendance recorded.');
     }
 }

@@ -134,6 +134,18 @@
         }
     });
 
+    /* ---------- notification bell ---------- */
+    /* Clicking anywhere outside an open notification dropdown closes it, so
+       the panel never lingers over the page. */
+    document.addEventListener('click', function (e) {
+        var opened = document.querySelectorAll('details.notif-menu[open]');
+        if (!opened.length) return;
+        var inside = e.target.closest('details.notif-menu');
+        opened.forEach(function (open) {
+            if (open !== inside) open.removeAttribute('open');
+        });
+    });
+
     /* Resizing across the breakpoint re-applies that shape rather than
        leaving the panel in a state that belongs to the other one. */
     var onShape = function () { initSidebar(); };

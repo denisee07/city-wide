@@ -108,7 +108,7 @@ class AssistanceController extends Controller
             'status' => 'qualified',
             'qr_code' => 'AYUDA-'.$program->id.'-'.$data['user_id'].'-'.bin2hex(random_bytes(6)),
         ]);
-        Notification::push($data['user_id'], 'Assistance QR code available', 'You are a beneficiary of '.$program->title.'. Your QR code is ready.', 'success', 'assistance', route('resident.assistance.show', $program));
+        Notification::send($data['user_id'], 'Assistance QR code available', 'You are a beneficiary of '.$program->title.'. Your QR code is ready.', 'success', 'assistance', route('resident.assistance.show', $program));
         return back()->with('status', 'Beneficiary added and QR generated.');
     }
 
@@ -144,7 +144,7 @@ class AssistanceController extends Controller
             'claimed_at' => now(),
             'claimed_by' => auth()->id(),
         ]);
-        Notification::push($beneficiary->user_id, 'Assistance claimed', 'Your '.$beneficiary->program->title.' has been claimed.', 'success', 'assistance');
+        Notification::send($beneficiary->user_id, 'Assistance claimed', 'Your '.$beneficiary->program->title.' has been claimed.', 'success', 'assistance');
         return redirect()->route('admin.assistance.scan')->with('status', 'Claim recorded.');
     }
 }

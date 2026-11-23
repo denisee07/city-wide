@@ -42,7 +42,7 @@ class EventController extends Controller
             'qr_code' => 'EVT-'.$event->id.'-'.auth()->id().'-'.bin2hex(random_bytes(6)),
             'status' => 'registered',
         ]);
-        Notification::push(auth()->id(), 'Event registration confirmed', 'You are registered for '.$event->title.'. Your QR code is ready.', 'success', 'event', route('resident.events.show', $event));
+        Notification::send(auth()->id(), 'Event registration confirmed', 'You are registered for '.$event->title.'. Your QR code is ready.', 'success', 'event', route('resident.events.show', $event));
         return back()->with('status', 'Registered successfully.');
     }
 }

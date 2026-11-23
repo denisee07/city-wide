@@ -60,7 +60,7 @@ class TextBlastController extends Controller
         // In a real deployment, integrate an SMS gateway here.
         // For now we record the blast and create in-app notifications for recipients.
         $q->get()->each(function ($u) use ($data) {
-            \App\Models\Notification::push($u->id, 'SMS advisory', $data['message'], 'info', 'sms');
+            \App\Models\Notification::send($u->id, 'SMS advisory', $data['message'], 'info', 'sms');
         });
 
         return redirect()->route('admin.textblast.index')->with('status', 'Text blast sent to '.$count.' recipients (logged).');

@@ -33,7 +33,7 @@ class Notification extends Model
         return is_null($this->read_at);
     }
 
-    public static function push(int $userId, string $title, ?string $body = null, string $type = 'info', string $category = 'general', ?string $actionUrl = null, ?array $data = null): self
+    public static function send(int $userId, string $title, ?string $body = null, string $type = 'info', string $category = 'general', ?string $actionUrl = null, ?array $data = null): self
     {
         return static::create([
             'user_id' => $userId,
@@ -46,10 +46,10 @@ class Notification extends Model
         ]);
     }
 
-    public static function pushToRole(string $role, string $title, ?string $body = null, string $type = 'info', string $category = 'general', ?string $actionUrl = null): void
+    public static function sendToRole(string $role, string $title, ?string $body = null, string $type = 'info', string $category = 'general', ?string $actionUrl = null): void
     {
         User::where('role', $role)->orWhereIn('role', User::OFFICIAL_ROLES)->get()->each(function ($u) use ($title, $body, $type, $category, $actionUrl) {
-            static::push($u->id, $title, $body, $type, $category, $actionUrl);
+            static::send($u->id, $title, $body, $type, $category, $actionUrl);
         });
     }
 }

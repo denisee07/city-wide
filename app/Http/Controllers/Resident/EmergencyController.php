@@ -49,15 +49,15 @@ class EmergencyController extends Controller
         // notify officials of destination
         if ($data['destination'] === 'city') {
             \App\Models\User::whereIn('role', \App\Models\User::OFFICIAL_ROLES)->get()->each(function ($u) use ($report) {
-                Notification::push($u->id, 'New emergency report', 'Report '.$report->reference_no.' ('.$report->categoryName().') needs attention.', 'danger', 'emergency', route('admin.emergency.show', $report));
+                Notification::send($u->id, 'New emergency report', 'Report '.$report->reference_no.' ('.$report->categoryName().') needs attention.', 'danger', 'emergency', route('admin.emergency.show', $report));
             });
         } else {
             \App\Models\User::whereIn('role', \App\Models\User::OFFICIAL_ROLES)->where('barangay_id', $report->barangay_id)->get()->each(function ($u) use ($report) {
-                Notification::push($u->id, 'New emergency report', 'Report '.$report->reference_no.' ('.$report->categoryName().') in your barangay.', 'danger', 'emergency', route('admin.emergency.show', $report));
+                Notification::send($u->id, 'New emergency report', 'Report '.$report->reference_no.' ('.$report->categoryName().') in your barangay.', 'danger', 'emergency', route('admin.emergency.show', $report));
             });
         }
 
-        Notification::push(auth()->id(), 'Emergency report submitted', 'Your report '.$report->reference_no.' has been submitted.', 'success', 'emergency', route('resident.emergency.show', $report));
+        Notification::send(auth()->id(), 'Emergency report submitted', 'Your report '.$report->reference_no.' has been submitted.', 'success', 'emergency', route('resident.emergency.show', $report));
 
         return redirect()->route('resident.emergency.show', $report)->with('status', 'Emergency report submitted.');
     }

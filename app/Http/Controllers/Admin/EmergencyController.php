@@ -67,7 +67,7 @@ class EmergencyController extends Controller
         }
         $emergencyReport->update($data);
 
-        Notification::push($emergencyReport->user_id, 'Emergency report updated', 'Your report '.$emergencyReport->reference_no.' is now '.$emergencyReport->statusLabel().'.', 'info', 'emergency', route('resident.emergency.show', $emergencyReport));
+        Notification::send($emergencyReport->user_id, 'Emergency report updated', 'Your report '.$emergencyReport->reference_no.' is now '.$emergencyReport->statusLabel().'.', 'info', 'emergency', route('resident.emergency.show', $emergencyReport));
 
         return redirect()->route('admin.emergency.show', $emergencyReport)->with('status', 'Report updated.');
     }
@@ -106,7 +106,7 @@ class EmergencyController extends Controller
         }
         $title = ($data['is_critical'] ? 'CRITICAL: ' : '').$data['title'];
         $q->get()->each(function ($u) use ($title, $data) {
-            Notification::push($u->id, $title, $data['body'], $data['is_critical'] ? 'danger' : 'info', 'emergency');
+            Notification::send($u->id, $title, $data['body'], $data['is_critical'] ? 'danger' : 'info', 'emergency');
         });
 
         return redirect()->route('admin.emergency.advisories')->with('status', 'Advisory published.');
