@@ -25,6 +25,9 @@
             <p class="sub">Every reported incident pinned across the barangay, refreshed live.</p>
         </div>
         <div class="row">
+            <a href="{{ route('admin.complaints.index', \App\Support\BarangayFilter::params()) }}" class="btn btn-ghost">
+                <x-icon name="alert" size="15" /> Complaints list
+            </a>
             <span class="badge badge-cyan">{{ $plotted }} plotted</span>
             @if ($unplotted > 0)
                 <span class="badge badge-neutral">{{ $unplotted }} without coordinates</span>

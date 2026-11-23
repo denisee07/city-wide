@@ -26,8 +26,12 @@
             <h1>Complaints</h1>
             <p class="sub">Track, assign and resolve reports filed by residents.</p>
         </div>
-        {{-- The map is a sidebar row already; a second route to it here only
-             made the header noisy. --}}
+        {{-- The map left the sidebar and now lives one button away from the
+             list it visualises: this is where someone plotting cases is
+             already standing. --}}
+        <a href="{{ route('admin.map.index', \App\Support\BarangayFilter::params()) }}" class="btn btn-info">
+            <x-icon name="pin" size="15" /> Open Complaint Map
+        </a>
     </div>
 
     @include('partials.status-legend', ['showPriority' => true])

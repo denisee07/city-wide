@@ -8,8 +8,7 @@
 
     /* Grouped so the panel opens as a handful of decisions, not a wall of
        links. The active group opens itself; the rest stay folded. */
-    $cases = request()->routeIs('admin.complaints.*', 'admin.map.*');
-    $documents = request()->routeIs('admin.requests.*', 'admin.appointments.*');
+    $cases = request()->routeIs('admin.complaints.*', 'admin.map.*');    $documents = request()->routeIs('admin.requests.*', 'admin.appointments.*');
     $publishing = request()->routeIs('admin.announcements.*', 'admin.textblast.*', 'admin.lost-found.*', 'admin.jobs.*');
     $managing = request()->routeIs('admin.barangays.*', 'admin.users.*', 'admin.census.*', 'admin.emergency.*');
     $programs = request()->routeIs('admin.assistance.*', 'admin.events.*', 'admin.reports.*');
@@ -19,13 +18,10 @@
     <x-nav-item :href="route('admin.dashboard')" label="Dashboard" icon="grid"
         pattern="admin.dashboard" />
 
-    {{-- Complaints lead, with the map filed underneath it as its second page. --}}
-    <x-nav-group label="Complaints" icon="alert" id="complaints" :active="$cases">
-        <x-nav-item :href="$link('admin.complaints.index')" label="Complaints" icon="alert"
-            pattern="admin.complaints.*" :count="$c['open_complaints'] ?? null" />
-        <x-nav-item :href="$link('admin.map.index')" label="Complaint Map" icon="pin"
-            pattern="admin.map.*" />
-    </x-nav-group>
+    {{-- Complaints is a plain link: the map moved into the page itself, so
+         the group would only wrap a single row. --}}
+    <x-nav-item :href="$link('admin.complaints.index')" label="Complaints" icon="alert"
+        pattern="admin.complaints.*" :count="$c['open_complaints'] ?? null" />
 
     {{-- Document requests and appointments are both counter bookings, so they
          share one section instead of two competing ones. --}}
