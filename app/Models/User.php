@@ -18,6 +18,7 @@ class User extends Authenticatable
         'password',
         'role',
         'barangay_id',
+        'qr_code',
         'status',
         'phone',
         'purok',

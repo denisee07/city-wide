@@ -1044,7 +1044,13 @@ p:last-child { margin-bottom: 0; }
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border);
 }
-.site-nav .links { display: flex; gap: 1.5rem; align-items: center; }
+.site-nav .links { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+@media (max-width: 720px) {
+    .site-nav { flex-wrap: wrap; gap: .5rem .8rem; padding: .6rem 1rem; }
+    .site-nav .links { gap: .7rem 1rem; width: 100%; justify-content: flex-start; }
+    .site-nav .links a:not(.btn) { font-size: .8rem; }
+    .site-nav .brand-sub { display: none; }
+}
 /* :not(.btn) is load-bearing - as written this rule outranks .btn-primary
    (0-2-1 vs 0-1-0), so the header's "Create account" button took the link
    grey and its label vanished into the cyan fill. */
@@ -1370,6 +1376,24 @@ p:last-child { margin-bottom: 0; }
 .detail-list .d dt { color: var(--dim); font-size: .79rem; }
 .detail-list .d dd { margin: 0; color: var(--text); text-align: right; font-weight: 550; }
 
+/* Key / value summary block (used across new modules) */
+.kv { display: flex; flex-direction: column; gap: .55rem; }
+.kv > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: .55rem;
+    border-bottom: 1px dashed var(--border);
+    font-size: .86rem;
+}
+.kv > div:last-child { border-bottom: none; padding-bottom: 0; }
+.kv .k { color: var(--dim); font-size: .79rem; flex: 0 0 42%; }
+.kv .v { color: var(--text); text-align: right; font-weight: 550; flex: 1; word-break: break-word; }
+@media (max-width: 560px) {
+    .kv > div { flex-direction: column; gap: .2rem; }
+    .kv .k, .kv .v { flex: none; text-align: left; }
+}
+
 /* =========================================================================
    First-run clarity aids
    ========================================================================= */
@@ -1602,6 +1626,11 @@ p:last-child { margin-bottom: 0; }
     .form-grid { grid-template-columns: 1fr; }
     .btn { width: auto; }
     .table th, .table td { padding: .6rem .7rem; }
+    .modal { padding: .6rem; }
+    .modal-card { max-height: 92vh; border-radius: var(--radius); }
+    .modal-head, .modal-body, .modal-foot { padding: .9rem 1rem; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .toolbar .input { width: 100%; }
 }
 
 /* =========================================================================

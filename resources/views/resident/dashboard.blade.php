@@ -22,6 +22,9 @@
              resident two buttons for the same two jobs. --}}
         @unless ($isFirstVisit ?? false)
             <div class="row">
+                <a href="{{ route('resident.emergency.create') }}" class="btn btn-danger">
+                    <x-icon name="alert" /> Emergency assistance
+                </a>
                 <a href="{{ route('resident.appointments.create') }}" class="btn">
                     <x-icon name="calendar" /> Book appointment
                 </a>
@@ -62,6 +65,9 @@
             </div>
 
             <div class="welcome-actions">
+                <a href="{{ route('resident.emergency.create') }}" class="btn btn-danger">
+                    <x-icon name="alert" /> Report an emergency
+                </a>
                 <a href="{{ route('resident.complaints.create') }}" class="btn btn-primary">
                     <x-icon name="plus" /> File a complaint
                 </a>

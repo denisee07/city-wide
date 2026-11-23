@@ -40,8 +40,13 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            /* Written straight into public/storage instead of storage/app/public
+               so shared hosts that disallow symlinks (InfinityFree et al.) serve
+               uploads without needing `php artisan storage:link`. The URL is a
+               relative /storage path, which keeps the app correct behind a
+               reverse proxy or in a subdirectory as well. */
+            'root' => env('PUBLIC_DISK_ROOT', public_path('storage')),
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

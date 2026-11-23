@@ -1,0 +1,7 @@
+{
+  "apphosting": {
+    "source": {
+      "directory": "."
+    }
+  }
+}

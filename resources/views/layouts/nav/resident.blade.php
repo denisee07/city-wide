@@ -1,12 +1,8 @@
 @php
     $c = $navCounts ?? [];
 
-    /* Residents came here to do four things. The panel now says so, instead
-       of showing ten destinations and three headings at once and hoping the
-       first-time visitor spots the right one. Every service is still exactly
-       one click from the dashboard, and none was removed. */
-    $mine = request()->routeIs('resident.complaints.*', 'resident.documents.*', 'resident.appointments.*', 'resident.queue.*');
-    $community = request()->routeIs('resident.announcements.*', 'resident.freedom-wall.*', 'resident.lost-found.*', 'resident.jobs.*');
+    $mine = request()->routeIs('resident.complaints.*', 'resident.documents.*', 'resident.appointments.*', 'resident.queue.*', 'resident.emergency.*', 'resident.qr.*');
+    $community = request()->routeIs('resident.announcements.*', 'resident.freedom-wall.*', 'resident.lost-found.*', 'resident.jobs.*', 'resident.events.*', 'resident.assistance.*');
 @endphp
 
 <nav class="nav">
@@ -22,9 +18,13 @@
             pattern="resident.appointments.*" :count="$c['appointments'] ?? null" />
         <x-nav-item :href="route('resident.queue.index')" label="Queueing" icon="ticket"
             pattern="resident.queue.*" />
+        <x-nav-item :href="route('resident.emergency.index')" label="Emergency Assistance" icon="alert"
+            pattern="resident.emergency.*" />
+        <x-nav-item :href="route('resident.qr.show')" label="My QR Code" icon="grid"
+            pattern="resident.qr.*" />
     </x-nav-group>
 
-    <x-nav-group label="Community" icon="compass" id="community" :active="$community">
+    <x-nav-group label="Community & programs" icon="compass" id="community" :active="$community">
         <x-nav-item :href="route('resident.announcements.index')" label="Announcements" icon="bell"
             pattern="resident.announcements.*" />
         <x-nav-item :href="route('resident.freedom-wall.index')" label="Freedom Wall" icon="chat"
@@ -33,12 +33,17 @@
             pattern="resident.lost-found.*" />
         <x-nav-item :href="route('resident.jobs.index')" label="Livelihood & Jobs" icon="briefcase"
             pattern="resident.jobs.*" />
+        <x-nav-item :href="route('resident.events.index')" label="Events" icon="calendar"
+            pattern="resident.events.*" />
+        <x-nav-item :href="route('resident.assistance.index')" label="Assistance & Ayuda" icon="gift"
+            pattern="resident.assistance.*" />
     </x-nav-group>
 
-    {{-- Same call as the admin map: a place residents look for is not
-         something to file under a heading they must first open. --}}
     <x-nav-item :href="route('resident.map.index')" label="Barangay Map" icon="map"
         pattern="resident.map.*" />
+
+    <x-nav-item :href="route('resident.notifications.index')" label="Notifications" icon="bell"
+        pattern="resident.notifications.*" />
 
     <x-nav-item :href="route('resident.profile.edit')" label="My Profile" icon="user"
         pattern="resident.profile.*" />

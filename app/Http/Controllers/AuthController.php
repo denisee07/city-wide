@@ -80,6 +80,8 @@ class AuthController extends Controller
             'birth_date' => $data['birth_date'] ?? null,
         ]);
 
+        $user->update(['qr_code' => 'RES-'.$user->id.'-'.bin2hex(random_bytes(8))]);
+
         Auth::login($user);
         $request->session()->regenerate();
 

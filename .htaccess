@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Shared-hosting entry point: forward every request into the public/
+    # directory (InfinityFree serves htdocs as the web root, and Laravel's
+    # front controller lives in public/).
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    # Fallback when mod_rewrite is unavailable: not functional, but prevents a
+    # directory listing while the host settings are being fixed.
+    Deny from all
+</IfModule>

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Resident;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,41 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/features', [HomeController::class, 'features'])->name('features');
+
+/*
+|--------------------------------------------------------------------------
+| One-time web installer (shared hosts have no SSH)
+|--------------------------------------------------------------------------
+|
+| InfinityFree and similar free hosts expose no shell, so `php artisan
+| migrate` cannot be run after uploading the files. This route runs the
+| migrations and seeders over HTTP instead. It is locked behind a long key
+| in the URL, refuses to run once the users table has data in it, and is
+| skipped entirely when INSTALL_KEY is not configured (local development,
+| where the CLI is available and this is never needed).
+|
+*/
+Route::get('/install/{key}', function (string $key) {
+    $expected = env('INSTALL_KEY');
+
+    abort_if(! $expected || ! hash_equals($expected, $key), 404);
+
+    if (\Illuminate\Support\Facades\DB::table('users')->count() > 0) {
+        return response('Already installed. Nothing to do — delete INSTALL_KEY from .env if you want to disable this route.', 200);
+    }
+
+    \Artisan::call('migrate', ['--force' => true]);
+    $migrateOutput = \Artisan::output();
+
+    \Artisan::call('db:seed', ['--force' => true]);
+    $seedOutput = \Artisan::output();
+
+    return response(
+        "<pre>".e($migrateOutput)."\n".e($seedOutput)."\n\nInstalled. Remove INSTALL_KEY from .env now.</pre>",
+        200,
+        ['Content-Type' => 'text/html']
+    );
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -74,6 +110,24 @@ Route::prefix('resident')->name('resident.')->middleware(['auth', 'role:resident
     Route::post('lost-found', [Resident\LostFoundController::class, 'store'])->name('lost-found.store');
 
     Route::get('map', [Resident\MapController::class, 'index'])->name('map.index');
+
+    Route::get('qr-code', [Resident\QrController::class, 'show'])->name('qr.show');
+
+    Route::get('emergency', [Resident\EmergencyController::class, 'index'])->name('emergency.index');
+    Route::get('emergency/create', [Resident\EmergencyController::class, 'create'])->name('emergency.create');
+    Route::post('emergency', [Resident\EmergencyController::class, 'store'])->name('emergency.store');
+    Route::get('emergency/{emergencyReport}', [Resident\EmergencyController::class, 'show'])->name('emergency.show');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+    Route::get('assistance', [Resident\AssistanceController::class, 'index'])->name('assistance.index');
+    Route::get('assistance/{program}', [Resident\AssistanceController::class, 'show'])->name('assistance.show');
+
+    Route::get('events', [Resident\EventController::class, 'index'])->name('events.index');
+    Route::get('events/{event}', [Resident\EventController::class, 'show'])->name('events.show');
+    Route::post('events/{event}/register', [Resident\EventController::class, 'register'])->name('events.register');
 
     Route::get('profile', [Resident\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [Resident\ProfileController::class, 'update'])->name('profile.update');
@@ -138,4 +192,62 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:official'])->g
 
     Route::get('settings', [Admin\SettingController::class, 'edit'])->name('settings.edit');
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
+
+    /* Census */
+    Route::get('census', [Admin\CensusController::class, 'index'])->name('census.index');
+    Route::get('census/create', [Admin\CensusController::class, 'create'])->name('census.create');
+    Route::post('census', [Admin\CensusController::class, 'store'])->name('census.store');
+    Route::get('census/{census}/edit', [Admin\CensusController::class, 'edit'])->name('census.edit');
+    Route::put('census/{census}', [Admin\CensusController::class, 'update'])->name('census.update');
+    Route::delete('census/{census}', [Admin\CensusController::class, 'destroy'])->name('census.destroy');
+
+    /* Emergency / DRRM */
+    Route::get('emergency', [Admin\EmergencyController::class, 'index'])->name('emergency.index');
+    Route::get('emergency/advisories', [Admin\EmergencyController::class, 'advisories'])->name('emergency.advisories');
+    Route::post('emergency/advisories', [Admin\EmergencyController::class, 'storeAdvisory'])->name('emergency.advisories.store');
+    Route::delete('emergency/advisories/{advisory}', [Admin\EmergencyController::class, 'destroyAdvisory'])->name('emergency.advisories.destroy');
+    Route::get('emergency/{emergencyReport}', [Admin\EmergencyController::class, 'show'])->name('emergency.show');
+    Route::patch('emergency/{emergencyReport}', [Admin\EmergencyController::class, 'update'])->name('emergency.update');
+
+    /* Notifications */
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+    /* Assistance / Ayuda */
+    Route::get('assistance', [Admin\AssistanceController::class, 'index'])->name('assistance.index');
+    Route::get('assistance/create', [Admin\AssistanceController::class, 'create'])->name('assistance.create');
+    Route::post('assistance', [Admin\AssistanceController::class, 'store'])->name('assistance.store');
+    Route::get('assistance/scan', [Admin\AssistanceController::class, 'scanForm'])->name('assistance.scan');
+    Route::post('assistance/scan', [Admin\AssistanceController::class, 'scanVerify'])->name('assistance.scan.verify');
+    Route::post('assistance/beneficiaries/{beneficiary}/claim', [Admin\AssistanceController::class, 'scanClaim'])->name('assistance.claim');
+    Route::delete('assistance/beneficiaries/{beneficiary}', [Admin\AssistanceController::class, 'removeBeneficiary'])->name('assistance.beneficiaries.remove');
+    Route::post('assistance/{program}/beneficiaries', [Admin\AssistanceController::class, 'addBeneficiary'])->name('assistance.beneficiaries.add');
+    Route::get('assistance/{program}', [Admin\AssistanceController::class, 'show'])->name('assistance.show');
+    Route::put('assistance/{program}', [Admin\AssistanceController::class, 'update'])->name('assistance.update');
+    Route::delete('assistance/{program}', [Admin\AssistanceController::class, 'destroy'])->name('assistance.destroy');
+
+    /* Events */
+    Route::get('events', [Admin\EventController::class, 'index'])->name('events.index');
+    Route::get('events/create', [Admin\EventController::class, 'create'])->name('events.create');
+    Route::post('events', [Admin\EventController::class, 'store'])->name('events.store');
+    Route::get('events/scan', [Admin\EventController::class, 'scanForm'])->name('events.scan');
+    Route::post('events/scan', [Admin\EventController::class, 'scanVerify'])->name('events.scan.verify');
+    Route::post('events/registrations/{registration}/attend', [Admin\EventController::class, 'scanAttend'])->name('events.attend');
+    Route::get('events/{event}', [Admin\EventController::class, 'show'])->name('events.show');
+    Route::put('events/{event}', [Admin\EventController::class, 'update'])->name('events.update');
+    Route::delete('events/{event}', [Admin\EventController::class, 'destroy'])->name('events.destroy');
+
+    /* Text blast */
+    Route::get('text-blast', [Admin\TextBlastController::class, 'index'])->name('textblast.index');
+    Route::get('text-blast/create', [Admin\TextBlastController::class, 'create'])->name('textblast.create');
+    Route::post('text-blast', [Admin\TextBlastController::class, 'store'])->name('textblast.store');
+
+    /* Reports / Printables */
+    Route::get('reports', [Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/census', [Admin\ReportController::class, 'census'])->name('reports.census');
+    Route::get('reports/residents', [Admin\ReportController::class, 'residents'])->name('reports.residents');
+    Route::get('reports/beneficiaries', [Admin\ReportController::class, 'beneficiaries'])->name('reports.beneficiaries');
+    Route::get('reports/attendance', [Admin\ReportController::class, 'attendance'])->name('reports.attendance');
+    Route::get('reports/emergency', [Admin\ReportController::class, 'emergency'])->name('reports.emergency');
 });

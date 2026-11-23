@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Concerns\ScopesAdminQueries;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
+use App\Models\AssistanceProgram;
+use App\Models\CensusRecord;
 use App\Models\Complaint;
 use App\Models\Appointment;
 use App\Models\DocumentRequest;
+use App\Models\EmergencyReport;
+use App\Models\Event;
 use App\Models\Job;
 use App\Models\QueueTicket;
 use App\Models\User;
@@ -62,6 +66,10 @@ class DashboardController extends Controller
         $waiting = (clone $todayQueue)->where('status', 'waiting')->count();
         $residents = $this->scopedUsers(User::query())->where('role', 'resident')->count();
         $openJobs = $this->scopedVisible(Job::query())->where('status', 'open')->count();
+        $censusTotal = $this->scoped(CensusRecord::query())->count();
+        $activeEmergencies = $this->scoped(EmergencyReport::query())->whereIn('status', ['submitted', 'received', 'under_review', 'responding'])->count();
+        $activePrograms = $this->scopedVisible(AssistanceProgram::query())->where('status', 'active')->count();
+        $upcomingEvents = $this->scopedVisible(Event::query())->where('status', 'upcoming')->count();
 
         /* ---- today's queue snapshot ---- */
         $nowServing = (clone $todayQueue)
@@ -197,7 +205,39 @@ class DashboardController extends Controller
                     'meta' => 'Livelihood listings live now',
                     'icon' => 'briefcase',
                     'href' => route('admin.jobs.index', $scope + ['status' => 'open']),
-                ],
+                    ],
+                    [
+                        'label' => 'Census records',
+                        'value' => $censusTotal,
+                        'tone' => 'violet',
+                        'meta' => 'Population records on file',
+                        'icon' => 'users',
+                        'href' => route('admin.census.index', $scope),
+                    ],
+                    [
+                        'label' => 'Active emergencies',
+                        'value' => $activeEmergencies,
+                        'tone' => 'rose',
+                        'meta' => 'Reports awaiting response',
+                        'icon' => 'alert',
+                        'href' => route('admin.emergency.index', $scope),
+                    ],
+                    [
+                        'label' => 'Active assistance programs',
+                        'value' => $activePrograms,
+                        'tone' => 'green',
+                        'meta' => 'Ayuda programs running',
+                        'icon' => 'gift',
+                        'href' => route('admin.assistance.index', $scope),
+                    ],
+                    [
+                        'label' => 'Upcoming events',
+                        'value' => $upcomingEvents,
+                        'tone' => 'amber',
+                        'meta' => 'Scheduled activities',
+                        'icon' => 'calendar',
+                        'href' => route('admin.events.index', $scope),
+                    ],
             ],
             'nowServing' => $nowServing,
             'waiting' => $waiting,

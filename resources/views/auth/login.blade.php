@@ -231,7 +231,12 @@
             if (passwordField) { passwordField.value = 'password'; }
             if (emailField) { emailField.focus(); }
 
-            if (window.toast) { toast('Demo credentials filled in — press Sign in.', 'info'); }
+            if (window.toast) { toast('Demo credentials filled in — signing in…', 'info'); }
+            /* Submit the form right away so the button does what its name
+               implies; previously it only filled the fields and users thought
+               nothing had happened. */
+            var form = emailField ? emailField.form : null;
+            if (form) { form.submit(); }
         });
     });
 </script>

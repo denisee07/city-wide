@@ -45,11 +45,28 @@
             pattern="admin.jobs.*" />
     </x-nav-group>
 
-    <x-nav-group label="City & accounts" icon="users" id="managing" :active="$managing">
+    <x-nav-group label="City management" icon="users" id="managing" :active="request()->routeIs('admin.barangays.*','admin.users.*','admin.census.*','admin.emergency.*')">
         <x-nav-item :href="$link('admin.barangays.index')" label="Barangays" icon="map"
             pattern="admin.barangays.*" :count="$c['barangays'] ?? null" />
         <x-nav-item :href="$link('admin.users.index')" label="Accounts" icon="users"
             pattern="admin.users.*" />
+        <x-nav-item :href="$link('admin.census.index')" label="Census" icon="users"
+            pattern="admin.census.*" />
+        <x-nav-item :href="$link('admin.emergency.index')" label="Emergency / DRRM" icon="alert"
+            pattern="admin.emergency.*" />
+    </x-nav-group>
+
+    <x-nav-group label="Programs & services" icon="gift" id="programs" :active="request()->routeIs('admin.assistance.*','admin.events.*','admin.textblast.*','admin.reports.*','admin.notifications.*')">
+        <x-nav-item :href="$link('admin.assistance.index')" label="Assistance & Ayuda" icon="gift"
+            pattern="admin.assistance.*" />
+        <x-nav-item :href="$link('admin.events.index')" label="Events" icon="calendar"
+            pattern="admin.events.*" />
+        <x-nav-item :href="$link('admin.textblast.index')" label="Text Blast" icon="megaphone"
+            pattern="admin.textblast.*" />
+        <x-nav-item :href="$link('admin.reports.index')" label="Reports" icon="file"
+            pattern="admin.reports.*" />
+        <x-nav-item :href="route('admin.notifications.index')" label="Notifications" icon="bell"
+            pattern="admin.notifications.*" />
     </x-nav-group>
 
     <x-nav-item :href="route('admin.settings.edit')" label="Settings" icon="sliders"

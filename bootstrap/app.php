@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +21,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Gracefully handle stale CSRF tokens (the "Page Expired" 419 error) by
+        // sending the user back to the page with a friendly message instead of
+        // showing a cryptic error screen.
+        $exceptions->renderable(function (HttpException $e, $request) {
+            if ($e->getStatusCode() !== 419) {
+                return null;
+            }
+            return response()->view('errors.expired', [], 419);
+        });
+
         $exceptions->renderable(function (Throwable $e) {
             if (! \App\Support\DbOutage::isConnectionFailure($e)) {
                 return null; // not an outage — let Laravel handle it normally

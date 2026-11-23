@@ -21,15 +21,6 @@
         </div>
 
         @include('layouts.nav.'.$portal)
-
-        <div class="sidebar-foot">
-            {{-- The account links live in the navigation proper now, so this
-                 strip carries only the one thing that is not part of the
-                 portal at all: leaving it. --}}
-            <a href="{{ route('home') }}" class="nav-item">
-                <x-icon name="compass" /> <span>Public website</span>
-            </a>
-        </div>
     </aside>
     <div class="sidebar-backdrop"></div>
 
