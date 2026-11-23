@@ -450,7 +450,15 @@ p:last-child { margin-bottom: 0; }
    collapses to its icon, and the page title truncates instead of pushing
    the row wider than the screen. */
 @media (max-width: 720px) {
-    .topbar { gap: .4rem; padding: 0 .65rem; }
+    .topbar {
+        gap: .4rem;
+        padding: .4rem .65rem;
+        /* Wrap instead of overlap: if anything is still too wide it drops to
+           a second row rather than painting over its neighbour. */
+        flex-wrap: wrap;
+        height: auto;
+        min-height: var(--topbar-h);
+    }
     .topbar .relative.grow { min-width: 0; }
     .topbar-title,
     .topbar-crumb {
@@ -459,6 +467,11 @@ p:last-child { margin-bottom: 0; }
         text-overflow: ellipsis;
     }
     .topbar-crumb { display: none; } /* the page title alone identifies the screen */
+
+    /* The scope pill is the widest thing in the bar and the first to collide
+       with the bell on a phone; the scope is still visible on every filtered
+       list, and the pill returns on desktop. */
+    .scope-pill { display: none !important; }
 
     .access-btn { width: 38px; height: 38px; padding: 0; justify-content: center; }
     .access-btn .access-btn-label { display: none; }
@@ -471,19 +484,11 @@ p:last-child { margin-bottom: 0; }
        screen edge when the bell sits near the middle of the bar. */
     .notif-panel {
         position: fixed;
-        top: calc(var(--topbar-h) + 2px);
+        top: var(--topbar-h);
         right: .5rem;
         left: .5rem;
         width: auto;
     }
-}
-
-@media (max-width: 560px) {
-    /* On a narrow phone the scope pill leaves the page title no room at all
-       (it measured 0px wide on a 360px screen), and the scope is always
-       visible again the moment a filtered list is opened. The title wins;
-       the pill returns above 560px. */
-    .scope-pill { display: none !important; }
 }
 
 /* =========================================================================
