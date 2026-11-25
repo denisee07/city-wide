@@ -10,12 +10,12 @@
         <button onclick="window.print()" class="btn btn-primary">Print / Save PDF</button>
     </div>
 
-    <section class="card">
+    <section class="card" style="padding: 1.5rem;">
         <div class="table-wrap">
-            <table class="table">
+            <table class="table" style="width: 100%;">
                 <thead><tr><th>Name</th><th>Sex</th><th>Age</th><th>Barangay</th><th>Purok</th><th>Household</th></tr></thead>
                 <tbody>
-                    @foreach ($records as $r)
+                    @forelse ($records as $r)
                         <tr>
                             <td>{{ $r->full_name }}</td>
                             <td>{{ ucfirst($r->sex ?? '—') }}</td>
@@ -24,10 +24,19 @@
                             <td>{{ $r->purok ?? '—' }}</td>
                             <td>{{ $r->household_no ?? '—' }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="center" style="padding: 3rem 1.5rem; color: var(--dim);">
+                                No census records found.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-        <p class="small dim" style="margin-top:1rem">Total: {{ $records->count() }} records. Generated {{ now()->format('M j, Y g:i A') }}.</p>
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;" class="small dim">
+            <span>Total: {{ $records->count() }} records</span>
+            <span>Generated {{ now()->format('M j, Y g:i A') }}</span>
+        </div>
     </section>
 @endsection

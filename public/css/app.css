@@ -859,17 +859,17 @@ p:last-child { margin-bottom: 0; }
 .table { width: 100%; border-collapse: collapse; font-size: .86rem; }
 .table th {
     text-align: left;
-    padding: .7rem .95rem;
+    padding: 1.05rem 1.25rem;
     font-family: var(--mono);
-    font-size: .65rem;
-    letter-spacing: .13em;
+    font-size: .72rem;
+    letter-spacing: .15em;
     text-transform: uppercase;
-    color: var(--dim);
-    background: rgba(255, 255, 255, .022);
+    color: var(--text);
+    background: rgba(255, 255, 255, .035);
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
 }
-.table td { padding: .78rem .95rem; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--muted); }
+.table td { padding: 1.05rem 1.25rem; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--muted); }
 .table td.strong { color: var(--text); font-weight: 550; }
 .table tbody tr { transition: .12s; }
 .table tbody tr:hover { background: rgba(34, 211, 238, .045); }

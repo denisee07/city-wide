@@ -20,12 +20,12 @@
         <button type="submit" class="btn btn-primary">Filter</button>
     </form>
 
-    <section class="card">
+    <section class="card" style="padding: 1.5rem;">
         <div class="table-wrap">
-            <table class="table">
+            <table class="table" style="width: 100%;">
                 <thead><tr><th>Resident</th><th>Barangay</th><th>Event</th><th>Reference</th><th>Status</th><th>Attended</th></tr></thead>
                 <tbody>
-                    @foreach ($items as $r)
+                    @forelse ($items as $r)
                         <tr>
                             <td>{{ $r->resident?->name }}</td>
                             <td>{{ $r->resident?->barangay?->name }}</td>
@@ -34,10 +34,19 @@
                             <td>{{ $r->status }}</td>
                             <td>{{ $r->attended_at?->format('M j, Y g:i A') ?? '—' }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="center" style="padding: 3rem 1.5rem; color: var(--dim);">
+                                No attendance records found.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-        <p class="small dim" style="margin-top:1rem">Total: {{ $items->count() }}. Generated {{ now()->format('M j, Y g:i A') }}.</p>
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;" class="small dim">
+            <span>Total: {{ $items->count() }} records</span>
+            <span>Generated {{ now()->format('M j, Y g:i A') }}</span>
+        </div>
     </section>
 @endsection

@@ -62,7 +62,7 @@
     </x-nav-group>
 
     {{-- 5th — the paper it all produces --}}
-    <x-nav-item :href="route('admin.reports.index')" label="Reports" icon="printer"
+    <x-nav-item :href="route('admin.reports.index')" label="Reports & Records" icon="printer"
         pattern="admin.reports.*" />
 
     <x-nav-item :href="route('admin.settings.edit')" label="Settings" icon="sliders"

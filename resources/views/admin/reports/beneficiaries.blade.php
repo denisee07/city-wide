@@ -20,12 +20,12 @@
         <button type="submit" class="btn btn-primary">Filter</button>
     </form>
 
-    <section class="card">
+    <section class="card" style="padding: 1.5rem;">
         <div class="table-wrap">
-            <table class="table">
+            <table class="table" style="width: 100%;">
                 <thead><tr><th>Resident</th><th>Barangay</th><th>Program</th><th>Reference</th><th>Status</th><th>QR</th></tr></thead>
                 <tbody>
-                    @foreach ($items as $b)
+                    @forelse ($items as $b)
                         <tr>
                             <td>{{ $b->resident?->name }}</td>
                             <td>{{ $b->resident?->barangay?->name }}</td>
@@ -34,10 +34,19 @@
                             <td>{{ $b->status }}</td>
                             <td class="tiny">{{ $b->qr_code }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="center" style="padding: 3rem 1.5rem; color: var(--dim);">
+                                No beneficiaries found.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-        <p class="small dim" style="margin-top:1rem">Total: {{ $items->count() }}. Generated {{ now()->format('M j, Y g:i A') }}.</p>
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;" class="small dim">
+            <span>Total: {{ $items->count() }} records</span>
+            <span>Generated {{ now()->format('M j, Y g:i A') }}</span>
+        </div>
     </section>
 @endsection
