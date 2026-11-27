@@ -535,7 +535,7 @@ p:last-child { margin-bottom: 0; }
 .card-foot { padding: .85rem 1.2rem; border-top: 1px solid var(--border); background: rgba(0,0,0,.16); }
 
 /* stat cards */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
 
 .stat {
     position: relative;
@@ -761,26 +761,19 @@ p:last-child { margin-bottom: 0; }
 .check { display: flex; align-items: flex-start; gap: .6rem; font-size: .85rem; color: var(--muted); cursor: pointer; }
 .check input { margin-top: .28rem; accent-color: var(--primary); width: 15px; height: 15px; flex-shrink: 0; }
 
-.search-box { position: relative; min-width: 210px; }
-
-/* A filter dropdown inside a toolbar. Nine pages carried this as an inline
-   style="width:auto; min-width:1XXpx", each with a different magic number, so
-   the toolbars wrapped inconsistently. One class, one width. */
-.filter-select {
-    width: auto;
-    min-width: 150px;
-    flex: 0 0 auto;
-}
-.search-box .input { padding-left: 2.15rem; }
+.search-box { position: relative; width: 100%; flex: 1 1 100%; }
+.search-box .input { padding-left: 3.5rem !important; width: 100%; }
 .search-box::before {
     content: "";
     position: absolute;
-    left: .72rem; top: 50%;
-    width: 13px; height: 13px;
+    left: 1.25rem !important; top: 50%;
+    width: 18px; height: 18px;
     transform: translateY(-50%);
-    background: var(--dim);
+    background: var(--primary);
     -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4'><circle cx='11' cy='11' r='7'/><path d='M20 20l-3.5-3.5'/></svg>") center/contain no-repeat;
     mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4'><circle cx='11' cy='11' r='7'/><path d='M20 20l-3.5-3.5'/></svg>") center/contain no-repeat;
+    z-index: 10;
+    pointer-events: none;
 }
 
 /* =========================================================================
@@ -913,9 +906,14 @@ p:last-child { margin-bottom: 0; }
 .toolbar {
     display: flex;
     align-items: center;
-    gap: .7rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.1rem;
+    gap: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 1.5rem;
+}
+.toolbar .input, .toolbar select {
+    padding: .75rem 1rem;
+    font-size: .95rem;
 }
 
 /* =========================================================================
@@ -1522,34 +1520,35 @@ p:last-child { margin-bottom: 0; }
     z-index: 70;
     display: flex;
     align-items: center;
-    gap: .35rem;
-    padding: .55rem clamp(1rem, 4vw, 2.6rem);
+    justify-content: center;
+    gap: .75rem;
+    padding: 1rem clamp(1rem, 4vw, 2.6rem);
     background: rgba(9, 13, 22, .94);
     backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
     overflow-x: auto;
     scrollbar-width: none;
 }
-.jump-nav::-webkit-scrollbar { display: none; }
 .jump-nav .jump-label {
     font-family: var(--mono);
-    font-size: .64rem;
+    font-size: .7rem;
     letter-spacing: .16em;
     text-transform: uppercase;
     color: var(--dim);
-    margin-right: .5rem;
+    margin-right: .75rem;
     white-space: nowrap;
 }
 .jump-nav a {
     display: inline-flex;
     align-items: center;
-    gap: .38rem;
-    padding: .34rem .7rem;
+    gap: .5rem;
+    padding: .55rem 1.15rem;
     border-radius: 999px;
     border: 1px solid var(--border);
     background: var(--panel-2);
     color: var(--muted);
-    font-size: .79rem;
+    font-size: .88rem;
     font-weight: 550;
     white-space: nowrap;
     transition: .15s;
